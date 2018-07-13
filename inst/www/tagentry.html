@@ -1,0 +1,937 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+<head>
+
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+
+<meta content="utf-8" http-equiv="encoding">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="-1">
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+
+<title>Tag Entry</title>
+
+
+ <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+
+<script src="opencpu/jquery-1.10.2.min.js"> </script>
+<script src="opencpu/opencpu-0.4.js"> </script>
+
+
+ 
+  <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+
+
+
+  <script src="jq/spin/spin.js"></script>
+  <script src="jq/spin/spin.min.js"></script>
+
+  <script src="jq/hans/handsontable.full.js"></script>
+<link rel="stylesheet" media="screen" href="jq/hans/handsontable.full.css">
+  
+  <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkrnIkvR2Upv3XHvXIO0gOqrLDZgUiSEE&sensor=false">
+    </script>
+
+<style>
+	#datepicker { position:relative; z-index: 10000; }
+	  #gmap {
+    width:650px;
+    height:400px;
+    margin-bottom: 10px;
+  }
+  pb{
+  	font-family: arial black;
+	  font-size: smaller;
+	  padding-left: 8px;
+	  
+  }
+    shead{
+  	font-family: arial black;
+
+
+  }
+   #tagpic {
+   	margin-top:10px;
+   	margin-bottom:10px;
+    width:250px;
+    height:80px;
+    background: url(images/ourtags-4.gif) top center no-repeat;
+  }
+     #mf {
+    width:700px;
+    height:430px;
+    background: url(images/carapacecond.png) top center no-repeat;
+	z-index: 10001;
+	position: fixed;
+left: inherit;
+top: 10%;
+  }
+     #showmf {
+	 display: inline;
+display: -webkit-inline-box;
+z-index: 10002;
+
+} 
+
+#mslider{
+width: 200px; 
+margin-left: 15px;
+margin-top: 5px;
+position:relative;
+}
+
+#fslider{
+width: 200px; 
+margin-left: 15px;
+margin-top: 5px;
+position:relative;
+
+}
+#spinner{
+width: 70px; 
+position:relative;
+}
+#rcorners {
+    border-radius: 25px;
+    border: 2px solid #000000;
+    padding: 20px; 
+
+	  padding-top: 5px;
+ 
+}
+
+</style>
+
+
+<SCRIPT>
+function mirrordata() {
+  var req = ocpu.rpc("mirror2esnssite", {}, function(output){
+
+  $('#mesbak').val($('#mesbak').val()+output); 
+	 
+	});
+	req.fail(function(){
+		alert("R returned an error while adding data: " + req.responseText);
+	});
+}
+ function checkenter(formname) {  
+ 
+            $("#prepage").show();
+            $("#fo").hide();
+			var opts = {
+				lines: 10, // The number of lines to draw
+				length: 8, // The length of each line
+				width: 7, // The line thickness
+				radius: 0, // The radius of the inner circle
+				corners: 1, // Corner roundness (0..1)
+				rotate: 0, // The rotation offset
+				direction: 1, // 1: clockwise, -1: counterclockwise
+				color: '#2576B7', // #rgb or #rrggbb or array of colors
+				speed: 1, // Rounds per second
+				trail: 60, // Afterglow percentage
+				shadow: false, // Whether to render a shadow
+				hwaccel: false, // Whether to use hardware acceleration
+				className: 'spinner', // The CSS class to assign to the spinner
+				zIndex: 2e9, // The z-index (defaults to 2000000000)
+				top: '-500', // Top position relative to parent in px
+				left: '200' // Left position relative to parent in px
+			};
+		
+			var target = document.getElementById('animation');
+			var spinner = new Spinner(opts).spin(target);
+			
+			  
+			var biodat = $container.data('handsontable').getData(); 
+			
+			var oldval = 0;
+			var num_rows = $('#biodata').handsontable('countRows');
+	        var co = true;
+	       var curr = "";
+		    var instance = $container.handsontable('getInstance');
+	      
+          
+		  while(co){
+		   curr = $('#biodata').handsontable('getDataAtCell', num_rows, 0);
+	         
+	
+	         if(curr === undefined || curr === null || curr === ""){
+			
+	           num_rows = num_rows-1;
+	         }
+	         else{
+	          oldval = parseInt(curr);
+		      co = false;
+	         }
+	       }
+			
+			
+			var sampdat = $('#fo').serialize();
+          if(check_fields(formname)){ 
+            
+		var bjson = JSON.stringify(biodat);
+			var sjson = JSON.stringify(sampdat);
+	var req = ocpu.rpc("sample_ent", {
+	bdata : bjson,
+	sdata : sjson
+	}, function(output){
+
+  $('#mesbak').val($('#mesbak').val()+output); 
+	  $("#prepage").hide();
+                 $("#fo").show();
+				 $("#biodata").handsontable('clear');
+				 var i = 1;
+				 while(i <= num_rows){
+					 instance.alter('remove_row', 2);
+		             i = i + 1;
+		         }
+				 $('#biodata').handsontable('setDataAtCell', 1, 0, parseInt(oldval)+1);
+				 $( "#amount" ).val("Please Update");
+				 $( "#amount2" ).val("Please Update");
+	});
+	req.fail(function(){
+		alert("R returned an error while adding data: " + req.responseText);
+	});
+			
+		
+          
+          }		
+			 
+else{
+ $("#prepage").hide();
+ $("#fo").show();
+}
+		return false;
+    
+
+} 
+
+  function openWin2(){
+
+           if($('#dum2').val() != "")
+              window.open($('#dum2').val(),"mywin","menubar=0,resizable=0,width=950,height=950")
+                         
+ }
+
+ 
+
+function loads(){
+   
+  $("#prepage").hide();
+ $("#vchart").hide();
+ }
+ function loadn(){
+   
+  $("#prepage").show();
+ $("#fo").hide();
+ }
+  function load(){
+   
+  $("#prepage").hide();
+ $("#fo").show();
+ }
+       function openWin(img){
+
+
+           window.open(img,"mywin","menubar=0,resizable=0,width=950,height=950")
+                            }
+    function check_fields(formname){ 
+ var returnval=false; 
+        var msg=""; 
+    
+		
+        if(formname.date.value=="") 
+            msg+="You must enter a date\n"; 
+        if(formname.samp.value=="") 
+            msg+="You must enter the sampler\n"; 
+       if(formname.ves.value=="") 
+            msg+="You must enter the vessel\n"; 
+	   if(formname.cfa.value=="") 
+            msg+="You must enter the cfa\n"; 
+		if(formname.capt.value=="") 
+            msg+="You must enter the captain\n"; 
+    
+	
+        if(formname.lat.value == "45\xB030.50N"){
+		  
+		   msg+="It does not look like you selected a latitude!\n";
+		}
+		if(formname.lon.value == "60\xB030.50W"){
+		   msg+="It does not look like you selected a longitude!\n"; 
+	 
+		  }
+	    if(formname.lat.value == "Please Update"){
+		   msg+="It does not look like you updated the latitude!\n"; 
+	 
+		  } 
+		 if(formname.lon.value == "Please Update"){
+		   msg+="It does not look like you updated the longitude!\n"; 
+	 
+		  }
+        if(msg=="") 
+        { 
+            returnval=true; 
+            return returnval; 
+        } 
+        else 
+        { 
+            alert(msg); 
+            return returnval; 
+        } 
+    } 
+
+  
+</script>
+
+<script>
+
+ function pad(num, size) {
+    var s = num+"";
+    while (s.length < size) s = "0" + s;
+    return s;
+}
+$(document).ready(function(){
+
+
+
+$("#mf").hide();
+
+
+  $("#showmf")
+  .mouseover(function(){
+   $("#mf").fadeToggle();
+ })
+ .mouseout(function() {
+ $("#mf").fadeToggle();
+  });
+
+
+
+$('#dum2').val("");
+loads();
+
+ $("#gmap").hide();
+ 
+  $("#show").click(function(){
+    $("#gmap").fadeToggle();
+    
+    google.maps.event.trigger(gmap, 'resize');
+  });
+
+
+ $("#dum").hide();
+  $("#dum2").hide();
+
+
+
+              
+               
+                
+                var myLatlng = new google.maps.LatLng(44.5, -61.5);
+                  var myLatlng2 = new google.maps.LatLng(46.5, -66.3);
+                var mapOptions = {
+                    zoom: 7,
+                    center: myLatlng2,
+                    mapTypeId: google.maps.MapTypeId.SATELLITE,
+                }
+                
+                var gmap = new google.maps.Map(document.getElementById("gmap"), mapOptions);
+        
+                // Marker and InfoWindow setup
+                var marker = new google.maps.Marker({
+  				    position: myLatlng,
+      				map: gmap,
+      				draggable: true,
+  				});
+            
+                //marker.bindInfoWindowHtml(infoWindowMarkup);
+
+                google.maps.event.addListener(marker, "drag", function(event){
+               var lat = marker.getPosition().lat();
+              var lde = Math.floor( lat );
+               var ldd =  lat - lde;
+               
+               var ldda = ldd*60;
+               var deg = Math.floor(ldda);
+               var ddeg = (ldda - deg)*100;
+            
+               $( "#amount" ).val( lde +"\xB0"+  ldda.toFixed(2) + "N");
+                $( "#slider" ).spinner( "value", lde );
+               $( "#slidermin" ).spinner( "value", deg) ;
+               $( "#sliderdmin" ).spinner( "value", Math.round(ddeg));
+           
+            var lng = marker.getPosition().lng();
+            
+              var ldx = Math.ceil( lng );
+               var lddx =  lng - ldx;
+               var lddax = lddx*-60;
+            var degx = Math.floor(lddax);
+               var ddegx = (lddax - degx)*100;
+            
+               $( "#amount2" ).val( ldx +"\xB0"+  lddax.toFixed(2) + "W");
+                $( "#sliderx" ).spinner( "value", ldx*-1 );
+        
+               $( "#slidermin2" ).spinner( "value", degx) ;
+            
+               $( "#sliderdmin2" ).spinner( "value", Math.round(ddegx));
+           
+           
+                });
+
+
+function getData() {
+  return [
+    ['Tag Num', 'Carapace', 'Claw', 'Shell Cond', 'Durometer', 'Clutch', 'Egg Color'],
+    ['', '', '', '', '', '', '']
+  ];
+}
+function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  td.style.fontWeight = 'bold';
+  td.style.color = 'green';
+  td.style.background = '#CEC';
+  td.style.borderColor = 'black';
+}
+function RowRenderer(instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  td.style.fontWeight = 'bold';
+  td.style.borderColor = 'black';
+}
+
+
+  $container = $("#biodata");
+  
+
+
+$container.handsontable({
+  data: getData(),
+  startRows: 8,
+  startCols: 5,
+  minSpareRows: 1,
+  contextMenu: false,
+  cells: function (row, col, prop) {
+    var cellProperties = {};
+
+    if (row === 0 || this.instance.getData()[row][col] === 'readOnly') {
+      cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+    }
+    if (row === 0) {
+      cellProperties.renderer = firstRowRenderer; // uses function directly
+    }
+    else{
+	  cellProperties.renderer = RowRenderer; // uses function directly
+	}
+
+    return cellProperties;
+  },
+  afterChange: function (changes, source) { 
+  var xad = new Audio('wavs/carlin_bs_stupid.mp3')
+    
+  var choice = Math.floor(Math.random() * 5) + 1
+  if(choice == 1)
+	var xad = new Audio('wavs/carlin_bs_stupid.mp3')
+ if(choice == 2)
+	var xad = new Audio('wavs/ahem.mp3')
+if(choice == 3)
+	var xad = new Audio('wavs/ahshit.mp3')
+ if(choice == 4)
+	var xad = new Audio('wavs/carlin_jesus.mp3')
+ if(choice == 5)
+	var xad = new Audio('wavs/dice_bs.mp3')
+
+
+    if(source != "loadData"){ 
+	//var instance = hot1;
+    var val = changes[0][3];
+	var col = changes[0][1];
+    var row = changes[0][0];
+	///carapace validate
+	if(col == 1 && val != ""){
+	  if(val > 153 && val != null){
+	 if(confirm("You have entered an unusually large carapace value. Keep existing value?")) {
+			// do nothing
+			} else {
+			$('#biodata').handsontable('setDataAtCell', row, col, null);
+			}
+      xad.play();
+
+ 
+	}
+	   if(val < 80 && val != null ){
+	
+	   if(confirm("You have entered an unusually small carapace value. Keep existing value?")) {
+			// do nothing
+			} else {
+			$('#biodata').handsontable('setDataAtCell', row, col, null);
+			}
+	    xad.play();
+
+	    }
+	}
+	//claw validate
+	if(col == 2 && val != ""){
+	  if(val > 40 && val != null){
+	 if(confirm("You have entered an unusually large claw value. Keep existing value?")) {
+			// do nothing
+			} else {
+			$('#biodata').handsontable('setDataAtCell', row, col, null);
+		
+			} 
+	  xad.play();
+
+		}
+	   if(val < 12 && val != null){
+	          if(confirm("You have entered an unusually small claw value. Keep existing value?")) {
+			// do nothing
+			} else {
+			$('#biodata').handsontable('setDataAtCell', row, col, null);
+			}
+	   xad.play();
+	   
+	    }
+	}
+	if(col == 3 && val != ""){
+	  if(val == 1 && val != null){
+	          if(confirm("We do not normally tag cc1 animals. Keep existing value?")) {
+			// do nothing
+			} else {
+			$('#biodata').handsontable('setDataAtCell', row, col, null);
+			}
+
+	  xad.play();
+	  
+    	}	
+	   if(val != null && val != 1 && val != 2 && val != 3 && val != 4 && val != 5){
+	    alert("You have entered a incorret Shell Condition, it will not be added!!");
+		
+	   xad.play();
+	   	$('#biodata').handsontable('setDataAtCell', row, col, null);
+	    
+	    }
+	    
+	}
+	
+	
+		if(col == 4 && val != ""){
+	  if(val<10 && val != null){
+	 alert("You have entered a incorret Shell Condition, it will not be added!!");
+	   
+	  xad.play();
+	  
+    	}	
+	  if(val>100 && val != null){
+	  alert("You have entered a incorret Shell Condition, it will not be added!!");
+	   
+	  
+	  xad.play();
+	   $('#biodata').handsontable('setDataAtCell', row, col, null);
+    	}	
+	    
+	}
+	if(col == 5 && val != ""){
+
+	   if(val != null && val != 1 && val != 2 && val != 3 && val != 4){
+	  alert("Clutch values must be 0-4, What you entered will not be added!!");
+			   
+	   xad.play();
+	   	$('#biodata').handsontable('setDataAtCell', row, col, null);
+	    
+	    }
+	    
+	}
+		if(col == 6 && val != ""){
+
+	   if(val != null && val != 1 && val != 2 && val != 3 && val != 4 && val != 0){
+	    alert("Egg color values must be 1-4, What you entered will not be added!!");
+			   
+	   xad.play();
+	   	$('#biodata').handsontable('setDataAtCell', row, col, null);
+	    
+	    }
+	    
+	}
+	
+	
+	var cur = hotInstance.getDataAtCell(row, 0);
+var nex = hotInstance.getDataAtCell(row-1, 0);
+
+	if(cur === undefined || cur === null){
+		
+		$('#biodata').handsontable('setDataAtCell', row, 0, parseInt(nex)+1);
+	
+	}
+     
+	 if(cur === "" ){
+	 if(col === 0){}
+	 else{
+	   $('#biodata').handsontable('setDataAtCell', row, 0, parseInt(nex)+1);
+	 }
+	 }
+	 
+	 
+	}
+
+  }
+});
+
+var hotInstance = $("#biodata").handsontable('getInstance');
+
+
+
+
+
+$("#ali").focusout(function() {
+  $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ $( "#slidermin" ).spinner( "value" )+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");	
+  
+});
+$("#ali2").focusout(function() {
+  $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ $( "#slidermin2" ).spinner( "value" )+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2) + "W");
+  
+});
+
+
+  $(function() {
+  	var spinner = $( "#spinner" ).spinner({
+      min: 0,
+      max: 200,
+      step: 1,
+  	});
+  	$( "#spinner" ).spinner( "value", 'unknown' );
+
+
+$('#spinner').on("spinstop", function(){
+   if($(this).spinner('value') == 0){
+   	$('#spinner').spinner("value", "unknown");
+
+   } 
+});
+
+    var date = $( "#datepicker" ).datepicker();
+
+
+	
+	
+	
+	
+    $( "#slider" ).spinner({
+      min: 43,
+      max: 47,
+      step: 1,
+      spin: function( event, ui ) {
+         $( "#amount" ).val( ui.value  +"\xB0"+ $( "#slidermin" ).spinner( "value" )+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");	
+      }
+
+    });
+    
+    $( "#slider" ).spinner( "value", 45 );
+
+    
+    $( "#slidermin" ).spinner({
+
+      min: 00,
+      max: 59,
+      step: 1,
+     spin: function( event, ui ) {
+      			   $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ ui.value +"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");
+     }
+    });
+    $( "#slidermin" ).spinner( "value", 30 );
+     
+     $( "#sliderdmin" ).spinner({
+    
+      min: 00,
+      max: 99,
+      step: 01,
+      spin: function( event, ui ) {
+      		   $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ $( "#slidermin" ).spinner( "value" )+"."+ pad(ui.value,2) + "N");
+      }
+    });
+    $( "#sliderdmin" ).spinner( "value", 50 );
+      
+     $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ $( "#slidermin" ).spinner( "value" )+"."+ $( "#sliderdmin" ).spinner( "value" )+ "N");
+
+
+	$( "#slider" ).on( "spinchange", function( event, ui ) {
+	     var val = this.value,
+         $this = $(this),
+         max = $this.spinner('option', 'max'),
+         min = $this.spinner('option', 'min');
+         if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+         this.value = val > max ? max : val < min ? min : val;
+		 $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ $( "#slidermin" ).spinner( "value" )+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");	
+    } );     
+		$( "#slidermin" ).on( "spinchange", function( event, ui ) {
+	     var val = this.value,
+         $this = $(this),
+         max = $this.spinner('option', 'max'),
+         min = $this.spinner('option', 'min');
+         if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+         this.value = val > max ? max : val < min ? min : val;
+		 $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ $( "#slidermin" ).spinner( "value" )+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");	
+    } );  
+		$( "#sliderdmin" ).on( "spinchange", function( event, ui ) {
+	     var val = this.value,
+         $this = $(this),
+         max = $this.spinner('option', 'max'),
+         min = $this.spinner('option', 'min');
+         if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+         this.value = val > max ? max : val < min ? min : val;
+		 $( "#amount" ).val($( "#slider" ).spinner( "value" ) +"\xB0"+ $( "#slidermin" ).spinner( "value" )+"."+ pad($( "#sliderdmin" ).spinner( "value" ),2)+ "N");	
+    } );  
+     
+   $( "#sliderx" ).spinner({
+
+      min: 56,
+      max: 67,
+      step: 1,
+       spin: function( event, ui ) {
+         $( "#amount2" ).val( ui.value  +"\xB0"+ $( "#slidermin2" ).spinner( "value" )+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2)+ "W");
+      		
+      }
+    });
+    $( "#sliderx" ).spinner( "value", 58 );
+    
+    $( "#slidermin2" ).spinner({
+   
+      min: 00,
+      max: 59,
+      step: 1,
+       spin: function( event, ui ) {
+      			   $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ ui.value +"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2)+ "W");
+     }
+
+    });
+     $( "#slidermin2" ).spinner( "value", 30 );
+     $( "#sliderdmin2" ).spinner({
+  
+      min: 00,
+      max: 99,
+      step: 1,
+      spin: function( event, ui ) {
+      		   $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ $( "#slidermin2" ).spinner( "value" )+"."+ pad(ui.value,2) + "W");
+      }
+    });
+      $( "#sliderdmin2" ).spinner( "value", 50 );
+ 
+ $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ $( "#slidermin2" ).spinner( "value" )+"."+ $( "#sliderdmin2" ).spinner( "value" )+ "W");
+ 
+	$( "#sliderx" ).on( "spinchange", function( event, ui ) {
+	     var val = this.value,
+         $this = $(this),
+         max = $this.spinner('option', 'max'),
+         min = $this.spinner('option', 'min');
+         if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+         this.value = val > max ? max : val < min ? min : val;
+		   $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ $( "#slidermin2" ).spinner( "value" )+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2) + "W");
+    } );     
+		$( "#slidermin2" ).on( "spinchange", function( event, ui ) {
+	     var val = this.value,
+         $this = $(this),
+         max = $this.spinner('option', 'max'),
+         min = $this.spinner('option', 'min');
+         if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+         this.value = val > max ? max : val < min ? min : val;
+		  $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ $( "#slidermin2" ).spinner( "value" )+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2) + "W");
+    } );  
+		$( "#sliderdmin2" ).on( "spinchange", function( event, ui ) {
+	     var val = this.value,
+         $this = $(this),
+         max = $this.spinner('option', 'max'),
+         min = $this.spinner('option', 'min');
+         if (!val.match(/^\d+$/)) val = 0; //we want only number, no alpha
+         this.value = val > max ? max : val < min ? min : val;
+		    $( "#amount2" ).val($( "#sliderx" ).spinner( "value" ) +"\xB0"+ $( "#slidermin2" ).spinner( "value" )+"."+ pad($( "#sliderdmin2" ).spinner( "value" ),2) + "W");
+    } );  
+
+
+
+
+
+   });
+
+  });
+
+</script>
+</head>
+
+<body>
+
+
+
+<div id="wrapper">
+     
+	<div id="page">
+
+<div id="contentpane">
+		
+			<h3>Tag Deck Sheet Entry Form</h3>
+
+
+<div id="prepage" >performing database operations, please wait...    <br><br> <div id="animation" style= "padding: 25px;"></div></div>
+<form id = "fo" name = "myForm" action="" method="post" style= "visibility: visible; border: solid; padding: 10px; border-radius: 15px;width: 800px;"  >
+
+<pb>Turn up the sound to hear potential errors</pb>
+<br><br>
+<pb>Is this from the Gulf Tagging program?</pb>
+<input type="radio" name="radio-choice-1" id="radio-choice-1" value="choice-1"  />
+<label for="radio-choice-1">Yes</label>
+
+<input type="radio" name="radio-choice-1" id="radio-choice-2" value="choice-2" checked="checked" />
+<label for="radio-choice-2">No</label>
+
+
+
+
+<div style='clear: left'></div>
+
+<br>
+<table style="width:100%">
+  <tr>
+    <td>	
+<div id="rcorners">
+<shead>Trip Data</shead>
+
+<br><br>
+
+<pb>Date</pb>
+<input type="text" name="date" id="datepicker" style="color: blue; font-size: 11pt; width: 80px; margin-bottom: 7px"/>
+
+
+<pb>Sampler</pb>
+<input type="text" name="samp" id="samp" style="color: blue; font-size: 11pt; width: 90px; margin-bottom: 7px"/>
+
+
+<pb>Vessel</pb>
+<input type="text" name="ves" id="ves" style="color: blue; font-size: 11pt; width: 90px; margin-bottom: 7px"/>
+<br>
+<pb>CFA</pb>
+
+<select name="cfa" id="cfa" style="color: blue; font-size: 11pt; width: 70px;">
+  <option value="nens">N-ENS</option>
+  <option value="23">23</option>
+  <option value="24">24</option>
+  <option value="xxxx">4X</option>
+  <option value="gulf">GULF</option>
+</select>
+
+<pb>Captain</pb>
+<input type="text" name="capt" id="capt" style="color: blue; font-size: 11pt; width: 90px;"/> 
+
+
+<br>
+
+</div>
+<br>
+
+<div id="rcorners">
+
+<shead>Sample Data</shead>
+<br><br>
+<pb>Depth</pb>
+<input type="text" name="dep" id="dep" style="color: blue; font-size: 11pt; width: 100px; margin-bottom: 7px"/>
+<br><pb>Comments</pb>
+<input type="text" name="com" id="com" style="color: blue; font-size: 11pt; width: 300px;"/> 
+
+
+<br>
+ <pb>Location</pb> 
+
+<div style='clear: left'></div>
+<div id="gmap" style="float:left; position:relative;"></div>
+<div style='clear: left'></div>
+<div id="ali" style="margin-bottom: 5px;  margin-left: 10px;">
+<div style="float:left; margin-right:16px; position:relative; bottom:-5px;">Latitude:</div>
+
+
+
+<input id="slider" style="width:20px; font-size: 11pt;"/>&deg;
+
+<input id="slidermin" style=" width:20px; font-size: 11pt; "/> .
+
+<input id="sliderdmin" style=" width:20px; font-size: 11pt;"/> '
+
+<input type="text" name="lat"  id="amount" style="border:none; font-size: 12pt; background:transparent; color: blue; " />
+</div>
+
+<div id="ali2">
+<div style="float:left; margin-right:2px; position:relative; bottom:-5px;  margin-left: 10px;">Longitude:</div>
+
+
+<input id="sliderx" style="width:20px; font-size: 11pt;"/>&deg;
+
+<input id="slidermin2" style=" width:20px; font-size: 11pt;"/> .
+
+<input id="sliderdmin2" style=" width:20px; font-size: 11pt;"/> '
+
+<input type="text" name="lon" id="amount2" style="border:none; font-size: 12pt; background:transparent; color: blue; " />
+</div>
+
+<div style='clear: left'></div>
+
+
+
+
+</div>
+<br>
+
+
+<div id="rcorners">
+<shead>Crab Data</shead>
+(tag num will auto increment based on previous value) 
+
+<br><br>
+<div name = "biodata" id="biodata" class="handsontable" ></div><br><br>
+</div>
+<br>
+
+
+
+
+<div id='buttons'>
+<input type="button" name="submit" class="f" id="submit" value="Submit" onClick = "return checkenter(this.form)" style="height:40px; width:70px; color:blue; font-size: 11pt;">
+
+</div>
+
+</td>
+<td style="text-align:left;vertical-align:top;padding:5px">
+<textarea rows="10" name="mesbak" id="mesbak">
+MESSAGE CONSOLE
+</textarea>
+</br></br>
+<div id='buttons'>
+<input type="button" name="mirror" class="f" id="mirror" value="Mirror to enssnowcrab.com" onClick = "mirrordata()" style="height:40px; width:70px; color:blue; font-size: 11pt;">
+
+</div>
+
+
+</td>
+
+</tr>
+</table>
+
+
+  
+</form>
+
+
+
+</div>
+
+
+      </div>
+
+	
+		<br class="clearfix" />
+
+
+</div>
+
+
+</body>
+</html>

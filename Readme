@@ -1,0 +1,4 @@
+Must change r temp folder to somthing thAT IS NOT RECOGINIZED BY internet explorer as a temp folder.
+
+tempstr = paste("TMP = '",unlist(strsplit(tempdir(), "Temp"))[1], "ocpu_t'", sep = "")
+write(tempstr, file=file.path(Sys.getenv('R_USER'), '.Renviron'))

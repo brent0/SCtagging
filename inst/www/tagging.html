@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="-1">
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<title>Tag Entry</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+<script src="opencpu/jquery-1.10.2.min.js"> </script>
+<script src="opencpu/opencpu-0.4.js"> </script>
+<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+<script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="jq/jquery.ui.addresspicker.js"></script>
+<script src="jq/spin/spin.js"></script>
+<script src="jq/spin/spin.min.js"></script>
+<SCRIPT>
+
+function openWin(img){
+	window.open(img,"mywin","menubar=0,resizable=0,width=950,height=950")
+}
+function mov(){
+var reg = "ScotianShelf";
+	var area= $("input[name='N']:checked").val();
+	var yearArray = null;
+var i = 0;
+  $("#checkboxlist input:checked").each(function() {
+      
+      if(i == 0) yearArray = $(this).val();
+      else yearArray = yearArray + "," + $(this).val();
+      i = 3;
+    
+  });
+	
+	var req = ocpu.rpc("SC_Stats_Capture",{are: area, years: yearArray, region: reg}, function(message){
+		if(message == false){
+		  alert(message);
+		}
+		else{
+		
+		alert(message);
+			
+		}		
+	});
+	req.fail(function(){
+		alert("R returned an error: " + req.responseText);
+	});
+	
+}
+
+
+
+</script>
+<style>
+.f {
+float: left;
+padding: 3px;
+}
+</style>
+</head>
+<body>
+<div id="wrapper">
+<div id="header">
+
+
+
+<div align="center" id="logo">
+<p>&nbsp;</p>
+<p1>PRIVATE</p1>
+<p>Tags, gulf & ens</p>
+</div>
+
+
+
+<br class="clearfix" />
+
+</div>
+
+
+
+<div id="menu">
+
+</div>
+
+<div id="page">
+
+<div id="contentpane">
+
+<h2>Tagging</h2></br>
+<pcont style = 'font-size:14px;'>
+Select Area and Year(s) of interest 
+<form>
+<div style='float:left; line-height: 1.4; width:150px; overflow:auto; height:150px; margin:10px;'>
+<input type='radio' name='N' value='allandgulf'>All Areas<br>
+<input type='radio' name='N' value='all'>All Areas ENS<br>
+<input type='radio' name='N' value='nens'>NENS<br>
+<input type='radio' name='N' value='sens'>SENS<br>
+<input type='radio' name='N' value='cfa23'>CFA-23<br>
+<input type='radio' name='N' value='cfa24'>CFA-24<br>
+<input type='radio' name='N' value='cfa4x'>CFA-4X<br>
+<input type='radio' name='N' value='nens_gulf'>NENS-GULF<br>
+<input type='radio' name='N' value='cfa23zoom'>CFA-23-zoom<br>
+<input type='radio' name='N' value='cfa24zoom'>CFA-24-zoom<br>
+<input type='radio' name='N' value= 'ens'>ENS<br>
+<input type='radio' name='N' value='all.holes'>Holes</div>
+
+
+
+<input type='checkbox' name='Y[]' value='2003,2002,2001,2000,1999,1998,1997,1996,1995,1994'>Pre-2004<br>
+
+<div id='checkboxlist' style='float:left; line-height: 1.4; width:150px; overflow:auto; height:150px; margin:10px;'>
+<input type='checkbox' name='Y[]' value='2003,2002,2001,2000,1999,1998,1997,1996,1995,1994'>Pre-2004<br>
+<input type='checkbox' name='Y[]' id='2004' value='2004'>2004<br>
+<input type='checkbox' name='Y[]' id='2005' value='2005'>2005<br>
+<input type='checkbox' name='Y[]' id='2006' value='2006'>2006<br>
+<input type='checkbox' name='Y[]' id='2007' value='2007'>2007<br>
+<input type='checkbox' name='Y[]' id='2008' value='2008'>2008<br>
+<input type='checkbox' name='Y[]' id='2009' value='2009'>2009<br>
+<input type='checkbox' name='Y[]' id='2010' value='2010'>2010<br>
+<input type='checkbox' name='Y[]' id='2011' value='2011'>2011<br>
+<input type='checkbox' name='Y[]' id='2012' value='2012'>2012<br>
+<input type='checkbox' name='Y[]' id='2013' value='2013'>2013<br>
+<input type='checkbox' name='Y[]' id='2014' value='2014'>2014<br>
+<input type='checkbox' name='Y[]' id='2015' value='2015'>2015<br>
+<input type='checkbox' name='Y[]' id='2016' value='2016'>2016<br>
+<input type='checkbox' name='Y[]' id='2017' value='2017'>2017<br>
+<input type='checkbox' name='Y[]' id='2018' value='2018'>2018</div>
+<div style='float:left; width:250px; height:150px; margin:10px;'><pcontsmall>You can select mulitple years. For 4X inquiries, the year seleced should be the latest year in the two years that span that season. 
+(e.g. for results regarding the 2010/2011 season select 2011 as the year.)</pcontsmall></div>
+<div style='clear: left'></div>
+
+<br/> Click on the Captures button to view movement data or click on the Releases button to view release positions for the above.<br/>
+<div id='buttons'>
+<input type="button" name="move" class="f" id="submitmov" value="Captures" onClick = "return mov()" style="height:40px; width:70px; color:blue; font-size: 11pt;">
+
+
+<input type="button" name="rel" class="f" id="submitrel" value="Releases" onClick = "return rel()" style="height:40px; width:70px; color:blue; font-size: 11pt;">
+	
+			<div style='clear:both'></div>
+		</div>
+
+</form>
+
+
+		</br><div><pcontsmall>&nbsp;&nbsp;
+	<!--	$f = fopen("/home3/enssnowc/public_html/snowcrabgroup/tag/stats.txt", "r"); -->
+</pcontsmall></div>
+
+
+
+
+
+</pcont>
+
+
+
+
+
+<br class="clearfix" />
+
+
+<div id="sidebar">
+<ul id="MenuBar1" class="MenuBarVertical">
+
+
+
+</ul>
+</div>
+
+
+</div>
+
+
+
+
+
+<br class="clearfix" />
+
+
+<div id="footer">
+Eastern Nova Scotia Snow Crab 
+</div>
+</div>
+</div>
+
+</body>
+</html>
