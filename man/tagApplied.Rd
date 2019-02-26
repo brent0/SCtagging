@@ -4,7 +4,7 @@
 \alias{tagApplied}
 \title{tagApplied}
 \usage{
-tagApplied(are, years)
+tagApplied(are, years, rm.gulf = T)
 }
 \value{
 stats message

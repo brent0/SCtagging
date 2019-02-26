@@ -285,17 +285,100 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
     
     return(str)
     
+}
+
+#' @title  tagApplied
+#' @description  Helper function to generate stats 
+#' @import RODBC stringr
+#' @return stats message
+#' @export
+tagApplied = function(are, years, rm.gulf = T){
+  if(length(years)>1)years = paste(as.character(years), collapse = ",")
+  yea = str_replace_all(years, ",", "') OR (SCT_TRIP.YEAR = '")
+  
+  # local_port = "3308"
+  # 
+  # SCtunnel = openportSC(local.port = local_port)
+  # 
+  # con <- dbConnect(dbDriver("MySQL"), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
+  # rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
+  # rs <- dbSendQuery(con, statement = paste("SELECT bio.tag_id, bio.sample_num, trip.trip_id, trip.year, trip.statsarea, sample.trip, sample.sample_id, sample.lat_DD_DDDD, sample.long_DD_DDDD
+  #                                          FROM bio, trip
+  #                                          JOIN sample
+  #                                          WHERE bio.sample_num = sample.sample_id 
+  #                                          AND sample.trip = trip.trip_id 
+  #                                          AND ( YEAR =", years , ");",sep = ""))
+  # 
+  # da <- fetch(rs, n = -1)   # extract all rows
+  # dbDisconnect(con) 
+  # closeportSC(SCtunnel)
+  # 
+  
+  
+  con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  da = NULL
+  
+  
+  query = paste("SELECT SCT_BIO.TAG_ID,
+                SCT_TRIP.YEAR,
+                SCT_TRIP.CFA,
+                SCT_SAMPLE.LAT_DD_DDDD,
+                SCT_SAMPLE.LONG_DD_DDDD  
+                FROM SCT_BIO
+                INNER JOIN SCT_SAMPLE
+                ON SCT_BIO.SAMPLE_NUM = SCT_SAMPLE.SAMPLE_ID
+                INNER JOIN SCT_TRIP
+                ON SCT_TRIP.TRIP_ID = SCT_SAMPLE.TRIP
+                WHERE (SCT_TRIP.YEAR = '", yea, "');", sep="")
+  
+  da = sqlQuery(con, query )
+  odbcClose(con)
+  
+  
+  
+  da$sample_id = NULL
+  x = nrow(da)
+  if(x == 0) return(NA)
+  names(da) = c("PID", "sampyear", "samparea", "samplat", "samplon")
+  
+  # ii = is.in(are, da$samplon, da$samplat)
+  ii = absolutely.in.area2(are, da$samplon, da$samplat)
+  ind = which(ii == FALSE)
+  
+  if(length(ind)>0) 
+    da = da[-ind,]
+  
+  #REMOVE GULF ENTRIES
+  # ind = which( as.character(da$samparea) == "GULF" )
+  if(rm.gulf){
+  ind = which(as.character(da$samparea) == "GULF"  & as.numeric(as.character(da$sampyear)) <= 2014 )
+  
+  if(length(ind)>0)
+    da = da[-ind,]
   }
+  
+  ind = which( as.numeric(da$sampyear) < 2004 )
+  
+  if(length(ind)>0){ 
+    return("This query includes years for which this information is not available")
+  }else{
+    return(nrow(da))
+  }
+  
+  
+  
+}
+
   #' @title  tagReturned_Year
   #' @description  Helper function to generate stats 
   #' @import RODBC stringr
   #' @return stats message
   #' @export
-  tagReturned_Year = function(are, years, region = "SoctianShelf"){
+tagReturned_Year = function(are, years, region = "SoctianShelf"){
     yea = as.numeric(unlist(strsplit(years, ",")))
-    
-    yea = str_replace_all(years, ",", "') OR (SCT_CAPTURE.YEAR = '")
   
+    yea = str_replace_all(years, ",", "') OR (SCT_CAPTURE.YEAR = '")
+ 
     toda = paste("SELECT SCT_CAPTURE.PERSON,
             SCT_CAPTURE.LAT_DD_DDDD,
             SCT_CAPTURE.LONG_DD_DDDD,
@@ -306,6 +389,7 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
     con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
     res = sqlQuery(con, toda)
     odbcClose(con)
+ 
     x = nrow(res)
 
     #Remove data outside of query area	
@@ -332,7 +416,7 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
   #' @import RODBC lubridate
   #' @return stats message 
   #' @export
-  tagReturned_Applied = function(are, years){
+tagReturned_Applied = function(are, years, rm.gulf = T){
     #TAGS APPLIED IN GIVEN AREA AND YEAR
     maxkm = 50
     z = NULL
@@ -346,9 +430,9 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
     
     yea = as.numeric(unlist(strsplit(years, ",")))
     y = get.capturedata()
-    x = get.paths()
+    x = get.path()
 
-    names(x) = c("PID", "plon", "plat", "capdate", "kms")
+    names(x) = c("PID", "CID", "capdate", "kms")
     x$capdate = dmy(x$capdate)
     da = merge(x, y, by = c("PID","capdate"))
    
@@ -362,29 +446,31 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
     da$Reported = NULL
     
     da$sample_id = NULL
-    x = nrow(da)
+    nr = nrow(da)
     
     
-    if(x == 0) return(z)
-    names(da) = c("PID","capdat","plong", "plat", "km", "caparea","caplat", "caplong",  "capyear", "triparea", "sampyear", "sampdate", "samplat", "samplon")
+    if(nr == 0) return(z)
+    names(da) = c("PID","capdat", "CID", "km", "caparea","caplat", "caplong",  "capyear", "triparea", "sampyear", "sampdate", "samplat", "samplon")
     
     ii = absolutely.in.area2(are, da$samplon, da$samplat)
-    jj = absolutely.in.area2(are, da$caplon, da$caplat)
-    ind = which(!(ii | jj))
-    
+    #jj = absolutely.in.area2(are, da$caplon, da$caplat)
+   # ind = which(!(ii | jj))
+    ind = which(!ii)
     
     if(length(ind)>0) 
       da = da[-ind,]
     
-    
+    if(rm.gulf){
     #REMOVE GULF ENTRIES
-    ind = which( as.character(da$caparea) == "GULF" & as.character(da$triparea) == "GULF"  )
+    #ind = which( as.character(da$caparea) == "GULF" & as.character(da$triparea) == "GULF"  )
+    ind = which(as.character(da$triparea) == "GULF"  & as.numeric(as.character(da$sampyear)) <= 2014 )
     if(length(ind)>0) 
       da = da[-ind,]
+    }
+
+    nr = nrow(da)
     
-    x = nrow(da)
-    
-    if(x == 0) return(z)
+    if(nr == 0) return(z)
     
   
     
@@ -459,13 +545,13 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
     
     z$mov = mean(daysince$nkm)
     z$lmov = max(daysince$nkm)
-   pdf("distances.pdf")
+   pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("distances", are, years,".pdf", sep = "_")))
     hist(daysince$nkm,breaks=100, col="red",main="Distances Travelled",xlab="Distance(km)")
    dev.off()
-   pdf("days.pdf")
+   pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("days.pdf", are, years,".pdf", sep = "_")))
    hist(daysince$ndays,breaks=100, col="red",main="Days To Last Known Capture",xlab="Time(days)")
    dev.off()
-   pdf("tofirstdays.pdf")
+   pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("tofirstdays.pdf", are, years,".pdf", sep = "_")))
    hist(tofirst,breaks=100, col="red", main="Days To First Capture",xlab="Time(days)")
    dev.off()
     z$day = mean(daysince$ndays)
@@ -477,7 +563,7 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
     return(z)
     
   }
-  alldata = function(are, years){
+alldata = function(are, years){
     are = "all"
     years = 2004:2017
     y = get.capturedatacc()
@@ -498,86 +584,6 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
       da = da[-ind,]
     
     write.csv(da, "outcc.csv")
-  }
-  
-  #' @title  tagApplied
-  #' @description  Helper function to generate stats 
-  #' @import RODBC stringr
-  #' @return stats message
-  #' @export
-  tagApplied = function(are, years){
-    if(length(years)>1)years = paste(as.character(years), collapse = ",")
-    yea = str_replace_all(years, ",", "') OR (SCT_TRIP.YEAR = '")
-    
-    # local_port = "3308"
-    # 
-    # SCtunnel = openportSC(local.port = local_port)
-    # 
-    # con <- dbConnect(dbDriver("MySQL"), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-    # rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-    # rs <- dbSendQuery(con, statement = paste("SELECT bio.tag_id, bio.sample_num, trip.trip_id, trip.year, trip.statsarea, sample.trip, sample.sample_id, sample.lat_DD_DDDD, sample.long_DD_DDDD
-    #                                          FROM bio, trip
-    #                                          JOIN sample
-    #                                          WHERE bio.sample_num = sample.sample_id 
-    #                                          AND sample.trip = trip.trip_id 
-    #                                          AND ( YEAR =", years , ");",sep = ""))
-    # 
-    # da <- fetch(rs, n = -1)   # extract all rows
-    # dbDisconnect(con) 
-    # closeportSC(SCtunnel)
-    # 
-    
-    
-    con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    da = NULL
-    
-    
-    query = paste("SELECT SCT_BIO.TAG_ID,
-                  SCT_TRIP.YEAR,
-                  SCT_TRIP.CFA,
-                  SCT_SAMPLE.LAT_DD_DDDD,
-                  SCT_SAMPLE.LONG_DD_DDDD  
-                  FROM SCT_BIO
-                  INNER JOIN SCT_SAMPLE
-                  ON SCT_BIO.SAMPLE_NUM = SCT_SAMPLE.SAMPLE_ID
-                  INNER JOIN SCT_TRIP
-                  ON SCT_TRIP.TRIP_ID = SCT_SAMPLE.TRIP
-                  WHERE (SCT_TRIP.YEAR = '", yea, "');", sep="")
-    
-    da = sqlQuery(con, query )
-    odbcClose(con)
-    
-    
-    
-    da$sample_id = NULL
-    x = nrow(da)
-    if(x == 0) return(NA)
-    names(da) = c("PID", "sampyear", "samparea", "samplat", "samplon")
-    
-   # ii = is.in(are, da$samplon, da$samplat)
-    ii = absolutely.in.area2(are, da$samplon, da$samplat)
-    ind = which(ii == FALSE)
-    
-    if(length(ind)>0) 
-      da = da[-ind,]
-    
-    #REMOVE GULF ENTRIES
-    ind = which( as.character(da$samparea) == "GULF" )
-    
-    if(length(ind)>0)
-      da = da[-ind,]
-    
-    
-    ind = which( as.numeric(da$sampyear) < 2004 )
-    
-    if(length(ind)>0){ 
-      return("This query includes years for which this information is not available")
-    }else{
-      return(nrow(da))
-    }
-    
-    
-    
   }
   
   

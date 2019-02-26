@@ -4,7 +4,7 @@
 \alias{tagReturned_Applied}
 \title{tagReturned_Applied}
 \usage{
-tagReturned_Applied(are, years)
+tagReturned_Applied(are, years, rm.gulf = T)
 }
 \value{
 stats message

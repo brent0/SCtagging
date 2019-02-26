@@ -88,11 +88,12 @@ statsfigures = function(){
   out = data.frame()
   outall = data.frame()
   outarea = data.frame()
-  years = 2004:2017
+  years = 2004:2018
   nens = NULL
   sens = NULL
   xxxx = NULL
   for(i in 1:length(years)){
+    print(years[i])
     zn = tagReturned_Applied("nens", as.character(years[i]))
     zta = tagApplied("nens", as.character(years[i]))
     zpn = tagReturned_Year("nens", as.character(years[i]))
@@ -109,6 +110,16 @@ statsfigures = function(){
     if(!is.numeric(zta))zta = 0
     if(!is.numeric(zfa))zfa = 0
     if(!is.numeric(zaa))zaa = 0
+    if(zpn == FALSE){
+      zpn = NULL
+      zpn$a = 0
+      zpn$b = 0
+    }
+    if(zpx == FALSE){
+      zpx = NULL
+      zpx$a = 0
+      zpx$b = 0
+    }
     if(!is.logical(zn)){
       nens = c(nens, zn$retuni/zta)
       zn$year = as.character(years[i])
@@ -166,8 +177,21 @@ statsfigures = function(){
     #      xxxx = c(xxxx, zf$retuni)
     #     else xxxx = c(xxxx, NA)
   }
-  write.csv( out, "stats_year_area.csv")
-  write.csv( outall, "stats_year.csv")
+  years = "2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018"
+  za = tagReturned_Applied("all", as.character(years))
+  zaa = tagApplied("all", as.character(years))
+  zpa = tagReturned_Year("all", as.character(years))
+  if(!is.logical(za)){  
+    za$year = as.character(years[i])
+    za$area = "all"
+    za$tapp = zaa
+    za$peo = zpa$a
+    za$upeo = zpa$b
+    outall = rbind(outall, data.frame(za))
+    
+  }
+  write.csv( out, file.path("D:", "SCtagging", "stats_year_area.csv"))
+  write.csv( outall, file.path("D:", "SCtagging", "stats_year.csv"))
   
   
   #####################################################
@@ -177,7 +201,7 @@ statsfigures = function(){
   k <- data.frame(nens, sens, xxxx)
   k = as.data.frame( k )
   colnames(k) = regions
-  rownames(k) = as.character(years)
+  rownames(k) = unlist(strsplit(years, ","))
   k = k[3:nrow(k),]
   uyrs = as.numeric(rownames(k) ) 
   pts = c(19, 22, 24)
@@ -188,8 +212,8 @@ statsfigures = function(){
   xrange = range(uyrs)
   xrange[1] = xrange[1]
   xrange[2] = xrange[2]
-  xlabels = seq(xrange[1]+1, xrange[2], 2)
-  fn = file.path( "returns.pdf" )
+
+  fn = file.path("C:", "Users","cameronbj","Desktop","Presentation","returns.pdf" )
   pdf(file=fn, width=7, height=7, bg='white')
   m=1
   miss <- !is.na(k[,m])
@@ -212,7 +236,7 @@ statsfigures = function(){
   k <- data.frame(out$upeo[which(out$area == "nens")], out$upeo[which(out$area == "sens")], out$upeo[which(out$area == "cfa4x")])
   k = as.data.frame( k )
   colnames(k) = regions
-  rownames(k) = as.character(years)
+  rownames(k) =   unlist(strsplit(years, ","))
   k = k[3:nrow(k),]
   uyrs = as.numeric(rownames(k) ) 
   pts = c(19, 22, 24)
@@ -224,11 +248,11 @@ statsfigures = function(){
   xrange[1] = xrange[1]
   xrange[2] = xrange[2]
   xlabels = seq(xrange[1]+1, xrange[2], 2)
-  fn = file.path( "people.pdf" )
+  fn = file.path("C:", "Users","cameronbj","Desktop","Presentation","people.pdf" )
   pdf(file=fn, width=7, height=7, bg='white')
   m=1
   miss <- !is.na(k[,m])
-  plot( uyrs[miss], na.omit(k[,m]),  type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xlim=xrange, ylim=yrange, ylab=" Movement Rate(km/month)", xlab="Year")
+  plot( uyrs[miss], na.omit(k[,m]),  type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xlim=xrange, ylim=yrange, ylab="Number of People", xlab="Year")
   
   m=2
   miss <- !is.na(k[,m])
@@ -242,9 +266,50 @@ statsfigures = function(){
   
   dev.off()
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  k <- data.frame(out$spe[which(out$area == "nens")], out$spe[which(out$area == "sens")], out$spe[which(out$area == "cfa4x")])
+  k = as.data.frame( k )
+  colnames(k) = regions
+  rownames(k) =   unlist(strsplit(years, ","))
+  k = k[3:nrow(k),]
+  uyrs = as.numeric(rownames(k) ) 
+  pts = c(19, 22, 24)
+  lns = c(1, 1, 1)
+  cols = c("goldenrod2", "coral3",  "mediumpurple2")
+  yrange = range (k, na.rm=T)
+  yrange[1] = 0
+  xrange = range(uyrs)
+  xrange[1] = xrange[1]
+  xrange[2] = xrange[2]
+  xlabels = seq(xrange[1]+1, xrange[2], 2)
+  fn = file.path("C:", "Users","cameronbj","Desktop","Presentation","movrate.pdf" )
+  pdf(file=fn, width=7, height=7, bg='white')
+  m=1
+  miss <- !is.na(k[,m])
+  plot( uyrs[miss], na.omit(k[,m]),  type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xlim=xrange, ylim=yrange, ylab="Movement Rate (km/month)", xlab="Year")
+  
+  m=2
+  miss <- !is.na(k[,m])
+  lines( uyrs[miss], na.omit(k[,m]), type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xlim=xrange, ylim=yrange)
+  
+  m=3
+  miss <- !is.na(k[,m])
+  lines( uyrs[miss], na.omit(k[,m]), type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xlim=xrange, ylim=yrange)
+  
+  legend("topleft", c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2 )
+  
+  dev.off()
   ########################################################
   
-
+outarea = NULL
   
   zn = tagReturned_Applied("nens", as.character(years))
   zta = tagApplied("nens", as.character(years))
@@ -254,27 +319,65 @@ statsfigures = function(){
   zfa = tagApplied("cfa4x", as.character(years))
   za = tagReturned_Applied("all", as.character(years))
   zaa = tagApplied("all", as.character(years))
-  
+  zpx = tagReturned_Year("cfa4x", as.character(years))
+  zpn = tagReturned_Year("nens", as.character(years))
+  zps = tagReturned_Year("sens", as.character(years))
   zn$year = "all"
   zn$area = "nens"
   zn$tapp = zta
+  zn$peo = zpn$a
+  zn$upeo = zpn$b
   outarea = rbind(outarea, data.frame(zn))
   zs$year = "all"
   zs$area = "sens"
   zs$tapp = zsa
+  zs$peo = zps$a
+  zs$upeo = zps$b
   outarea = rbind(outarea, data.frame(zs))
   zf$year = "all"
   zf$area = "cfa4x"
   zf$tapp = zfa
+  zf$peo = zpx$a
+  zf$upeo = zpx$b
   outarea = rbind(outarea, data.frame(zf))       
-  zn = tagReturned_Applied("all", as.character(years))
-  zta = tagApplied("all", as.character(years))
-  zn$year = "all"
-  zn$area = "all"
-  zn$tapp = zta
-  outarea = rbind(outarea, data.frame(zn))   
-  write.csv( outarea, "stats_area.csv")
+  zna = tagReturned_Applied("all", as.character(years))
+  ztaa = tagApplied("all", as.character(years))
+  zpaa = tagReturned_Year("all", as.character(years))
+  
+  zna$year = "all"
+  zna$area = "all"
+  zna$tapp = ztaa
+  zna$peo = zpaa$a
+  zna$upeo = zpaa$b
+  outarea = rbind(outarea, data.frame(zna))   
 
+  write.csv( outarea, file.path("D:", "SCtagging", "stats_area.csv"))
+  
+  
+  
+  #######################################################################
+  
+  
+  cdd = get.capturedata()
+  cdd$abscaparea = absolutely.in.area2(area = "unknown", abslon = cdd$caplon, abslat = cdd$caplat)
+  cdd$abssamparea = absolutely.in.area2(area = "unknown", abslon = cdd$rellon, abslat = cdd$rellat)
+  print(cdd[which(cdd$abscaparea == "NENS" & cdd$abssamparea == "SENS"),])
+  print(cdd[which(cdd$abscaparea == "SENS" & cdd$abssamparea == "NENS"),])
+  
+ cdd4x = cdd[which(cdd$abssamparea == "CFA-4X" & as.numeric(as.character(cdd$sampyear)) >= 2008 ),]
+counts = as.data.frame(table(as.character(cdd4x$PID)))
+which(counts$Freq > 1)
+which(counts$Freq > 2)
+  
+print(cdd[which(cdd$abscaparea == "CFA-4X" & cdd$abssamparea == "SENS"),])
+print(cdd[which(cdd$abscaparea == "SENS" & cdd$abssamparea == "CFA-4X"),])
+
+cp = get.path()
+cp$CDATE = dmy(cp$CDATE)
+ad = merge(cp, cdd, by.x = c("TID", "CDATE"), by.y = c("PID", "capdate") )
+
+  #######################################################################
+  
   
   # 
   # mydf = cbind(mydf, years)
@@ -294,8 +397,8 @@ statsfigures = function(){
 
   
   
-  arl = read.csv("E:/SCtagging/arel.csv")
-  apa = read.csv("E:/SCtagging/acpath.csv")
+  arl = read.csv("D:/SCtagging/arel.csv")
+  apa = read.csv("D:/SCtagging/acpath.csv")
   names(apa) = c("rows", "id", "Days", "PID", "Km")
   apa$id = gsub("ZSC-", "", apa$id)
   apa$Area = NA
@@ -311,27 +414,36 @@ statsfigures = function(){
   
   
   
+  ad$DIST = as.numeric(ad$DIST)
+
+ad$Days = ad$CDATE - as.Date(ad$sampdat)
+ad$Days = as.numeric(ad$Days)
+  ad$Sample.Area = ad$abssamparea
   
-  
-  ad = read.csv("E:/SCtagging/alldatag.csv")
-  names(ad)= c("PID","capdate","plon","plat", "Km", "caparea",  "caplat","caplon", "year", "Sample.Area", "sampyear", "sampdat",  "rellat",   "rellon", "Days") 
-  
-  
+  ad$Km = ad$DIST
   xc = unlist(rainbow(length(unique(ad$sampyear))+3))
 xc = xc[4:length(xc)]
 #dt  = ad[which(ad$Sample.Area!='GULF'),]
 dt  = ad[which(ad$Days > 10),]
 dt  = dt[which(dt$caplat != 0),]
-dt  = dt[which(dt$Sample.Area != "GULF"),]
-avli = sum(dt$km)/sum(dt$Days)
+dt  = dt[which(dt$abssamparea != "GULF"),]
+avli = sum(dt$DIST)/sum(dt$Days)
 avd = dt$Days*avli
 dt$year.group = NA
-dt$year.group[which(dt$sampyear >= 1996 & dt$sampyear <= 1998)] = "1996-1998"
-dt$year.group[which(dt$sampyear >= 1999 & dt$sampyear <= 2003)] = "1999-2003"
+# dt$year.group[which(dt$sampyear >= 1996 & dt$sampyear <= 1998)] = "1996-1998"
+# dt$year.group[which(dt$sampyear >= 1999 & dt$sampyear <= 2003)] = "1999-2003"
+# dt$year.group[which(dt$sampyear >= 2004 & dt$sampyear <= 2008)] = "2004-2008"
+# dt$year.group[which(dt$sampyear >= 2009 & dt$sampyear <= 2013)] = "2009-2013"
+# dt$year.group[which(dt$sampyear >= 2014)] = "2014-2017"
+
 dt$year.group[which(dt$sampyear >= 2004 & dt$sampyear <= 2008)] = "2004-2008"
 dt$year.group[which(dt$sampyear >= 2009 & dt$sampyear <= 2013)] = "2009-2013"
-dt$year.group[which(dt$sampyear >= 2014)] = "2014-2017"
-ggplot2.scatterplot(data=dt, backgroundColor="white", size=5, xName='Days',yName='Km', groupName="Sample.Area", faceting=TRUE, facetingVarNames="year.group", legendTitle = "Release Area", facetingDirection="horizontal", xtickLabelRotation = 90)
+dt$year.group[which(dt$sampyear >= 2014)] = "2014-2018"
+ind = which(is.na(dt$year.group))
+if(length(ind>0)) dt = dt[-ind,]
+
+
+ggplot2.scatterplot(data=dt, backgroundColor="white", size=5, xName='Days',yName='Km', groupName="Sample.Area", faceting=TRUE, facetingVarNames="year.group", legendTitle = "Release Area", facetingDirection="vertical", xtickLabelRotation = 90, addRegLine=TRUE, regLineColor="blue",addConfidenceInterval=TRUE, smoothingMethod="loess")
 
   ggplot2.scatterplot(data=dt, backgroundColor="white", mainTitle="Kilometers vs. Days by Release Area", xName='Days',yName='Km', groupName="Sample.Area", addRegLine=TRUE, regLineColor="blue",addConfidenceInterval=TRUE, smoothingMethod="loess")
   ggplot2.scatterplot(data=dt, backgroundColor="white", size=5, mainTitle="Kilometers vs. Days by Release Area", groupColors=xc, xName='Days',yName='Km', groupName="sampyear", faceting=TRUE, facetingVarNames="Sample.Area")
@@ -392,6 +504,62 @@ agescript = function(){
   
 }
 
+capture.history.spa= function(region = "ScotianShelf"){
+  mcform = get.releases()
+  cd = get.capturedata.oracle()
+
+  mcform$begin.time = NA
+  mcform$initial.age = NA
+  mcform$time.intervals = NA
+  mcform$ch = NA
+
+  for(i in 1: nrow(mcform)){
+    mcform$begin.time[i] = ymd(mcform$sampdat[i])
+    mcform$initial.age[i] = mcform$cc[i]
+    subcd = cd[which(cd$PID == mcform$PID[i]),]
+    print(subcd)
+    ch = h = c(1, 0, 0, 0, 0, 0, 0)
+    h[as.numeric(subcd$year) - as.numeric(unique(subcd$sampyear[1])) +1] = 1
+    mcform$ch[i] = paste(h, collapse = "")
+    
+    if(nrow(subcd)>0){
+    yearlis = c()
+    for(j in 1:nrow(subcd)){
+      if(!subcd$year[j] %in% yearlis){
+      yearlis = c(yearlis, subcd$year[j])
+      if(is.na(mcform$time.intervals[i])){
+        print(subcd$capdate[j] - subcd$sampdat[j])
+        mcform$time.intervals[i] = subcd$capdate[j] - subcd$sampdat[j]
+      }
+      else{
+        mcform$time.intervals[i] = c(mcform$time.intervals[i], subcd$capdate[j] - subcd$sampdat[j])
+      }
+  
+      }
+    }
+    }
+  }
+mc = mcform
+begin.time = mc$begin.time
+initial.age = mc$initial.age
+time.intervals =  mc$time.intervals
+mc$begin.time = NULL
+mc$initial.age = NULL
+mc$time.intervals = NULL
+x=process.data(data = mc, initial.ages = initial.age, time.intervals = time.intervals )
+x=process.data(data = mc, initial.ages = initial.age )
+
+x = process.data(data = mc)
+resight.matrix(y)
+
+naive.survival(x)
+
+mcmc_mode(x)
+accumulate_data(mc)
+
+}
+
+
 
 #' @title  get.capturedatacc
 #' @description  Return  capture data
@@ -443,7 +611,24 @@ get.capturedatacc = function(){
   return(da)
   
 }
+#' @title  get.capturedata.oracle
+#' @description  Get all tag data view from oracle database 
+#' @import ROracle
+#' @return dataframe of data
+#' @export
+get.capturedata.oracle = function(){
+  gstring= ""
+  drv <- DBI::dbDriver("Oracle")
+  con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  res <- ROracle::dbSendQuery(con, paste("select * from SCT_ALL", gstring, sep = "")) 
+  res <- ROracle::fetch(res)
+  
+  names(res) = c("PID", "caplat", "caplon", "capdate", "caparea", "year", "csubarea", "rewarded", "sampdat", "area", "subarea", "sampyear","samplat", "samplon", "carapace", "chela", "cc")
 
+  
+  return(res)
+  
+}
 get.capturedata.ens = function(){
   local_port = "3308"
   
@@ -451,7 +636,8 @@ get.capturedata.ens = function(){
   
   con <- dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
   rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-  rs <- dbSendQuery(con, statement = "Select * from 
+  
+ rs <- dbSendQuery(con, statement = "Select * from 
                     (SELECT  bio.tag_id, bio.sample_num, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.subarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year 
                     from capture join bio where bio.tag_id  = capture.tag) t1 
                     JOIN (SELECT trip.trip_id, trip.statsarea, trip.subarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
@@ -488,6 +674,39 @@ get.capturedata.ens = function(){
   return(da)
   
 }
+get.alldata.ens = function(){
+  local_port = "3308"
+  
+  SCtunnel = openportSC(local.port = local_port)
+  
+  con <- dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
+  rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
+  
+  rs <- dbSendQuery(con, statement = "Select * from alldata;")
+  
+  da <- fetch(rs, n = -1)   # extract all rows
+  dbDisconnect(con) 
+  closeportSC(SCtunnel)
+  da = unique(da)
+  
+  names(da) = c("PID", "caplat", "caplon","capdate", "caparea", "year","csubarea", "rewarded","reldat","area", "subarea","relyear", "rellat", "rellon", "carapace", "chela", "cc")
+  previd = ""
+  # da = da[order(da$PID),]
+  for(i in 1:nrow(da)){
+    if(da$PID[i] == previd){
+      da$rellat[i] = da$caplat[i-1]
+      da$rellon[i] = da$caplon[i-1]
+      da$reldat[i] = da$capdat[i-1]
+    }
+    previd = da$PID[i] 
+  }
+  
+  return(da)
+  
+}
+
+
+
 #' @title  Generate Rewards 
 #' @description  Open java program that generates reward letters.
 #' @export
@@ -553,7 +772,8 @@ enter.returns.public = function(){
 #' @return dataframe
 #' @export
 shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.tif", package = "SCtagging"), neighborhood = 16, type = "random.walk", redo = F, region = "ScotianShelf"){
-  gstring = ""
+  drv <- dbDriver("Oracle")
+    gstring = ""
   if(region == "Gulf") gstring = "_GULF"
   x = get.capturedata(region)
   x$PID = as.character(x$PID)
@@ -590,6 +810,8 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
   # closeportSC(SCtunnel)
   # 
   dftowrite = NULL
+  df2towrite = NULL
+  dxtowrite = NULL
   append = F
   overwrite = T
   if(!redo){
@@ -646,6 +868,9 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
       leng = calcLength (tpoly, rollup = 3, close = FALSE) #km    
       
       
+      dxp = cbind(rep(x$PID[i], nrow(cor)),rep(count, nrow(cor)), 1:nrow(cor), cor$X, cor$Y)
+      dxtowrite = rbind(dxtowrite, dxp)
+      df2towrite = rbind(df2towrite, cbind(x$PID[i], count, x$capdat[i], leng$length))
       
       dftowrite = rbind(dftowrite, cbind(x$PID[i],paste(cor[,1], collapse = ","), paste(cor[,2], collapse = ","), x$capdat[i], leng$length))
       
@@ -654,7 +879,16 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     
   }
   else{
+    count  = 1
+    previd = ""
     for(i in 1:nrow(x)){
+      if(x$PID[i] == previd){
+        count = count+1
+      }
+      else{
+        previd = x$PID[i]
+        count = 1
+      }
       start <- c(as.numeric(x$rellon[i]), as.numeric(x$rellat[i]))
       end <- c(as.numeric(x$caplon[i]), as.numeric(x$caplat[i]))
       
@@ -679,11 +913,11 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
       xrep = cor$x[nrow(cor)]
       yrep = cor$y[nrow(cor)]
       for(k in nrow(cor):2){
-        if(cor$x[k] == xrep) cor$x[k] =  end[1]
-        else xrep = 1000000
+        if(cor$x[k] == xrep){ cor$x[k] =  end[1] }
+        else{ xrep = 1000000 }
         
-        if(cor$y[k] == yrep) cor$y[k] =  end[2]
-        else yrep = 1000000
+        if(cor$y[k] == yrep){ cor$y[k] =  end[2] }
+        else{ yrep = 1000000}
       }
       
       names(cor) = c("X", "Y")
@@ -692,8 +926,9 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
       tpoly = as.PolySet(cor, projection = "LL")
       leng = calcLength (tpoly, rollup = 3, close = FALSE) #km    
       
-      
-      
+      dxp = cbind(rep(x$PID[i], nrow(cor)),rep(count, nrow(cor)), 1:nrow(cor), cor$X, cor$Y)
+      dxtowrite = rbind(dxtowrite, dxp)
+      df2towrite = rbind(df2towrite, cbind(x$PID[i], count, x$capdat[i], leng$length))
       
       dftowrite = rbind(dftowrite, cbind(x$PID[i],paste(cor[,1], collapse = ","), paste(cor[,2], collapse = ","), x$capdat[i], leng$length))
       
@@ -704,14 +939,19 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
   
   if(!is.null(dftowrite)){
     dftowrite = data.frame(dftowrite)
+    df2towrite = data.frame(df2towrite)
+    str(df2towrite)
     names(dftowrite) = c("ID", "LON", "LAT", "CDATE", "DIST")
-    
+    names(df2towrite) = c("TID", "CID", "CDATE", "DIST")
+    dxtowrite = data.frame(dxtowrite)
+    names(dxtowrite) = c("TID", "CID", "POS", "LON", "LAT")
     drv <- dbDriver("Oracle")
     if(redo){
       
       con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
       
       if(dbExistsTable(con, "SCT_PATHS"))dbSendQuery(con, "DROP TABLE SCT_PATHS")
+      if(dbExistsTable(con, "SCT_PATH"))dbSendQuery(con, "DROP TABLE SCT_PATH")
       
       dbDisconnect(con)
     }
@@ -719,6 +959,7 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     Sys.setenv(ORA_SDTZ = "America/Halifax")
     
     dftowrite$CDATE = as.POSIXct(as.numeric(as.character(dftowrite$CDATE)), origin = '1970-01-01')
+    df2towrite$CDATE = as.POSIXct(as.numeric(as.character(df2towrite$CDATE)), origin = '1970-01-01')
     
     #attr(dftowrite$LON, "ora.type") <- 'CLOB'
     #attr(dftowrite$LON, "ora.encoding") <- 'UTF-8'
@@ -738,7 +979,8 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     
     ###################NEED TO UPDATE, FIND SOLUTION THE SLOW CLOB VALUES. PROCEEDING WITH MYSQL FOR NOW
     
-    
+    xx= NULL
+    xy=NULL
     xx = as.character(as.Date(dftowrite$CDATE))
     xx[which(is.na(xx))] = "1111-11-11"
     xy = matrix(unlist(strsplit(xx, "-")), ncol = 3,  byrow = T)
@@ -746,15 +988,34 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     dftowrite$CDATE = paste(xy[,3], xy[,2], xy[,1], sep = "/")
     dftowrite$CDATE[which(dftowrite$CDATE == "11/11/1111")] = NA
     
+    xx= NULL
+    xy=NULL
+    xx = as.character(as.Date(df2towrite$CDATE))
+    xx[which(is.na(xx))] = "1111-11-11"
+    xy = matrix(unlist(strsplit(xx, "-")), ncol = 3,  byrow = T)
     
-    local_port = "3309"
-    SCtunnel = openportSC(local.port = local_port)
+    df2towrite$CDATE = paste(xy[,3], xy[,2], xy[,1], sep = "/")
+    df2towrite$CDATE[which(df2towrite$CDATE == "11/11/1111")] = NA
     
-    con <- dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
     
-    rs <- RMySQL::dbWriteTable(con, "paths",  dftowrite, row.names = F, overwrite = T, append = FALSE)
-    dbDisconnect(con) 
-    closeportSC(SCtunnel)
+    
+    # local_port = "3309"
+    # SCtunnel = openportSC(local.port = local_port)
+    # 
+    # con <- dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
+    # 
+    # rs <- RMySQL::dbWriteTable(con, "paths",  dftowrite, row.names = F, overwrite = T, append = FALSE)
+    # rs <- RMySQL::dbWriteTable(con, "path",  dxtowrite, row.names = F, overwrite = T, append = FALSE)
+    # 
+    # dbDisconnect(con) 
+    # closeportSC(SCtunnel)
+
+    con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+    
+    dbWriteTable(con,"SCT_PATHS", dxtowrite)
+    dbWriteTable(con,"SCT_PATH", df2towrite)
+    dbDisconnect(con)
+    
     print("New paths calculated and written to paths table.")
   }
   else{
@@ -764,7 +1025,7 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
 }
 #' @title  mirror2esnssite
 #' @description  ESSENTIAL FUNCTION. Must call after any data entry in order for the website to be up to date! 
-#' @import ROracle RMySQL DBI
+#' @import ROracle RMySQL DBI rJava
 #' @return status message in case it was called by webpage
 #' @export
 mirror2esnssite = function(region = "ScotianShelf"){
@@ -785,8 +1046,11 @@ mirror2esnssite = function(region = "ScotianShelf"){
   respeo <- ROracle::fetch(respeo)
   #respat <- ROracle::dbSendQuery(con, paste("select * from SCT_PATHS", gstring, sep = "")) 
   #respat <- fetch(respat)
-  ROracle::dbDisconnect(con)
+  resall <- get.capturedata.oracle()
   
+  ROracle::dbDisconnect(con)
+  resall$capdate = as.character(as.Date(resall$capdate))
+  resall$sampdat = as.character(as.Date(resall$sampdat))
   
   xx = as.character(as.Date(restri$RELEASE_DATE))
   xy = matrix(unlist(strsplit(xx, "-")), ncol = 3,  byrow = T)
@@ -825,6 +1089,7 @@ mirror2esnssite = function(region = "ScotianShelf"){
   rs <- RMySQL::dbWriteTable(con, "sample", ressam, row.names = F, overwrite = T, append = FALSE)
   rs <- RMySQL::dbWriteTable(con, "trip", restri, row.names = F, overwrite = T, append = FALSE)
   rs <- RMySQL::dbWriteTable(con, "people", respeo, row.names = F, overwrite = T, append = FALSE)
+  rs <- RMySQL::dbWriteTable(con, "alldata", resall, row.names = F, overwrite = T, append = FALSE)
   
   RMySQL::dbDisconnect(con) 
   closeportSC(SCtunnel)
@@ -1061,16 +1326,16 @@ create.tag.kml = function(preview = T, write = T, tofile = NULL){
         icon_href = rep(hr, length(lon))
         #line_href = rep(lst, length(lon))
         if(is.null(sub_out)){
-          sub_out = data.frame(cbind(pid, lon, lat, line_color, line_width = 1))
+          sub_out = data.frame(cbind(pid, lon, lat, line_color, line_width = 2))
         }else{
-          sub_out = rbind(sub_out, cbind(pid, lon, lat, line_color, line_width = 1))
+          sub_out = rbind(sub_out, cbind(pid, lon, lat, line_color, line_width = 2))
         }
         
         
         if(is.null(outarrow)){
-          outarrow = data.frame(cbind(pid, da_y$sampyear[1], lon[length(lon)], lat[length(lat)], icon_heading, hr, .2))
+          outarrow = data.frame(cbind(pid, da_y$sampyear[1], lon[length(lon)], lat[length(lat)], icon_heading, hr, .4))
         }else{
-          outarrow = rbind(outarrow, cbind(pid, da_y$sampyear[1], lon[length(lon)], lat[length(lat)],icon_heading, hr, .2))
+          outarrow = rbind(outarrow, cbind(pid, da_y$sampyear[1], lon[length(lon)], lat[length(lat)],icon_heading, hr, .4))
         }
         
       }
@@ -1124,7 +1389,7 @@ create.tag.kml = function(preview = T, write = T, tofile = NULL){
   mykml$addPoint(outarrow)
   mykml$addLineString(outframe, altitudeMode = "relativeToGround")
   print(getwd())
-  mykml$addScreenOverlay(fn = "taglegend.png", size_x = .2, size_y = .2, screen_x = .8, screen_y = .8 )
+  #mykml$addScreenOverlay(fn = "E:\\SCtagging\\data\\taglegend.png", size_x = .2, size_y = .2, screen_x = .8, screen_y = .8 )
   
   if(preview){
     mykml$preview()
@@ -1140,9 +1405,12 @@ create.tag.kml = function(preview = T, write = T, tofile = NULL){
   }
   
 }
-## Write tag movement data to GeoJSON javascript functions. This is used b the enssnowcrab website to 
-## display tag movement data by year. The previous tag kml does not display properly in google maps so this
-## method was implemented. It looks better than the old kml since geoJSON has built in arrow markers.
+
+#' @title  create.tag.geojson
+#' @description  Write tag movement data to GeoJSON javascript functions. This is used by the enssnowcrab website to display tag movement data by year. The previous tag kml does not display properly in google maps so this method was implemented. It looks better than the old kml since geoJSON has built in arrow markers.
+#' @param filename path to write the resulting kml
+#' @import RMySQL chron sp geosphere stringr
+#' @export
 create.tag.geojson = function(filename = NULL){
   
   main = "function add..year..(map, arr, inf, ls){..markers..}" 
@@ -1150,31 +1418,32 @@ create.tag.geojson = function(filename = NULL){
   positions = "{lat: ..lat.., lng: ..lon..}"
   
   
-  local_port = "3309"
-  SCtunnel = openportSC(local.port = local_port)
+  # local_port = "3308"
+  # SCtunnel = openportSC(local.port = local_port)
+  # 
+  # 
+  # con <- dbConnect(dbDriver("MySQL"), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
+  # rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
+  # rs <- dbSendQuery(con, statement = "Select * from 
+  #                   (SELECT  bio.tag_id, bio.sample_num, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year 
+  #                   from capture join bio where bio.tag_id = capture.tag) t1 
+  #                   JOIN (SELECT trip.trip_id, trip.statsarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
+  #                   from trip join sample where sample.trip = trip.trip_id)t2
+  #                   ON t1.sample_num = t2.sample_id  
+  #                   ORDER BY captain, trip_id, tag_id, t1.date;")
+  # 
+  # da <- fetch(rs, n = -1)   # extract all rows
+  da = get.capturedata()
+
+ # rs <- dbSendQuery(con, statement = "Select * from paths;")
   
+  #path <- fetch(rs, n = -1)   # extract all rows
+  # closeportSC(SCtunnel)
+  # dbDisconnect(con)
   
-  con <- dbConnect(dbDriver("MySQL"), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-  rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
-  rs <- dbSendQuery(con, statement = "Select * from 
-                    (SELECT  bio.tag_id, bio.sample_num, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year 
-                    from capture join bio where bio.tag_id = capture.tag) t1 
-                    JOIN (SELECT trip.trip_id, trip.statsarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
-                    from trip join sample where sample.trip = trip.trip_id)t2
-                    ON t1.sample_num = t2.sample_id  
-                    ORDER BY captain, trip_id, tag_id, t1.date;")
+ # names(path) = c("id","lon", "lat", "cdat", "dist")
   
-  da <- fetch(rs, n = -1)   # extract all rows
-  
-  rs <- dbSendQuery(con, statement = "Select * from paths;")
-  
-  path <- fetch(rs, n = -1)   # extract all rows
-  closeportSC(SCtunnel)
-  dbDisconnect(con)
-  
-  names(path) = c("id","lon", "lat", "cdat", "dist")
-  
-  path = path[order(path$cdat),]
+ # path = path[order(path$cdat),]
   
   da$sample_num = NULL
   da$trip_id = NULL
@@ -1198,13 +1467,13 @@ create.tag.geojson = function(filename = NULL){
   
   ind = which(as.character(da$year) == "")
   if(length(ind) > 0 )da = da[-ind,]
-  
-  ind = which(as.character(da$caparea) == "GULF" & as.character(da$area) == "GULF")
+  ind = which(as.character(da$area) == "GULF"  & as.numeric(as.character(da$sampyear)) <= 2014 )
+  #ind = which(as.character(da$caparea) == "GULF" & as.character(da$area) == "GULF")
   
   da = da[-ind,]
   dup = 0
   
-  library(stringr)
+
   
   mattxt = "unknown"
   
@@ -1234,15 +1503,15 @@ create.tag.geojson = function(filename = NULL){
     
     ymain = sub("..year..", da_y$sampyear[1], ymain)
     
-    da_tid = split(da_y, da_y$PID)
+    da_tid = split(da_y, as.character(da_y$PID))
     allmarkers = ""
     for(j in 1:length(da_tid)){
       fin_da = da_tid[[j]]
       
-      sampchron = chron(fin_da$sampdat[1], format = "y-m-d")
+      sampchron = chron(as.character(fin_da$sampdat[1]), format = "y-m-d")
       
-      fin_path = path[which(path$id == fin_da$PID[1]),]
-      
+     # fin_path = path[which(path$id == fin_da$PID[1]),]
+      fin_path = get.pathdata.tid(region = "ScotianShelf", tid = fin_da$PID[1])
       description2 = "<b> datetxt  <br><br> disttxt</b>"
       disttxt = ""
       datetxt = ""
@@ -1250,20 +1519,19 @@ create.tag.geojson = function(filename = NULL){
       markerblock = ""
       
       
-      for(k in 1:nrow(fin_path)){
+      for(k in 1:length(unique(fin_path$CID))){
+
         
+        capchron = chron(as.character(fin_da$capdate[k]), format = "y-m-d")
         
-        
-        capchron = chron(  fin_da$capdate[k], format = "y-m-d")
-        
-        date = as.character(   fin_da$capdate[k])
+        date = as.character(fin_da$capdate[k])
         
         if(is.na(capchron)){
           date = paste("No date returned, received in ",fin_da$year[k])
-          if( fin_da$caparea[k] == "NENS") capchron = chron(paste( fin_da$year[k],"-07-15", sep=""), format = "y-m-d")
-          if( fin_da$caparea[k] == "SENS") capchron = chron(paste( fin_da$year[k],"-08-15", sep=""), format = "y-m-d")
-          if( fin_da$caparea[k] == "GULF") capchron = chron(paste( fin_da$year[k],"-08-15", sep=""), format = "y-m-d")
-          if( fin_da$caparea[k] == "4X") capchron = chron(paste( fin_da$year[k],"-03-15", sep=""), format = "y-m-d")
+          if( as.character(fin_da$caparea[k]) == "NENS") capchron = chron(paste( as.character(fin_da$year[k]),"-07-15", sep=""), format = "y-m-d")
+          if( as.character(fin_da$caparea[k]) == "SENS") capchron = chron(paste( as.character(fin_da$year[k]),"-08-15", sep=""), format = "y-m-d")
+          if( as.character(fin_da$caparea[k]) == "GULF") capchron = chron(paste( as.character(fin_da$year[k]),"-08-15", sep=""), format = "y-m-d")
+          if( as.character(fin_da$caparea[k]) == "4X") capchron = chron(paste( as.character(fin_da$year[k]),"-03-15", sep=""), format = "y-m-d")
           
         }
         dif = capchron - sampchron
@@ -1292,11 +1560,10 @@ create.tag.geojson = function(filename = NULL){
         
         
         
-        lon = unlist(str_split(fin_path[k,]$lon, ","))
-        lat = unlist(str_split(fin_path[k,]$lat, ","))
-        dist = "unknown"
-        
-        
+        #lon = unlist(str_split(fin_path[k,]$lon, ","))
+        #lat = unlist(str_split(fin_path[k,]$lat, ","))
+        lon = fin_path$LON[which(fin_path$CID == k)]
+        lat = fin_path$LAT[which(fin_path$CID == k)]
         
         if(k==1){
           
@@ -1710,7 +1977,7 @@ openportSC = function(user = enssnowc.user, password = enssnowc.password, host =
   return(tunnel)
 } 
 #' @title  closeportSC
-#' @description  close a named ssh tunnel for ENS site satabase opperations
+#' @description  close a named ssh tunnel for ENS site database opperations
 #' @import rJava 
 #' @export
 closeportSC = function(tunnel){
@@ -1735,6 +2002,59 @@ gettableSQL = function(table){
   return(da)
 }
 
+#' @title  get.releases
+#' @description  Return capture data
+#' @import RODBC
+#' @return dataframe
+#' @export
+get.releases = function(region = "ScotianShelf"){
+  gstring = ""
+  if(region == "Gulf"){
+    gstring = "_GULF"
+  }
+  con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  da = NULL
+  
+  
+  query = paste("SELECT SCT_BIO", gstring,".TAG_ID,
+                SCT_BIO", gstring,".SAMPLE_NUM,
+                SCT_BIO", gstring,".CC,
+              SCT_BIO", gstring,".CARAPACE_W,
+              SCT_BIO", gstring,".CHELA_H,  
+       SCT_BIO", gstring,".DUROMETER, 
+              SCT_TRIP", gstring,".TRIP_ID,
+                SCT_TRIP", gstring,".STATSAREA AS STATSAREA1,
+                SCT_TRIP", gstring,".YEAR      AS YEAR1,
+                SCT_TRIP", gstring,".RELEASE_DATE,
+                SCT_SAMPLE", gstring,".LAT_DD_DDDD              AS LAT_DD_DDDD1,
+                SCT_SAMPLE", gstring,".LONG_DD_DDDD             AS LONG_DD_DDDD1,
+                SCT_SAMPLE", gstring,".SAMPLE_ID
+                FROM SCT_BIO", gstring,"
+                JOIN SCT_SAMPLE", gstring,"
+                ON SCT_BIO", gstring,".SAMPLE_NUM = SCT_SAMPLE", gstring,".SAMPLE_ID
+                INNER JOIN SCT_TRIP", gstring,"
+                ON SCT_SAMPLE", gstring,".TRIP = SCT_TRIP", gstring,".TRIP_ID
+                ORDER BY SCT_TRIP", gstring,".TRIP_ID,
+                SCT_BIO", gstring,".TAG_ID,
+                SCT_TRIP", gstring,".RELEASE_DATE;", sep = "")
+  
+  # resbio <- ROracle::dbSendQuery(con, query) 
+  # da <- fetch(resbio)
+  da = RODBC::sqlQuery(con, query )
+  # ROracle::dbDisconnect(con)
+  RODBC::odbcClose(con)
+  # da <- RODBC::fetch(rs, n = -1)   # extract all rows
+  #RODBC::dbDisconnect(con) 
+  # closeportSC(SCtunnel)
+  da = unique(da)
+  da$SAMPLE_NUM = NULL
+  da$TRIP_ID = NULL
+  da$SAMPLE_ID = NULL
+  
+  names(da) = c("PID", "cc", "cw", "ch", "dur", "area", "sampyear", "sampdat", "rellat", "rellon")
+ 
+  return(da)
+}
 #' @title  get.capturedata
 #' @description  Return capture data
 #' @import RODBC
@@ -1831,6 +2151,53 @@ get.capturedata = function(region = "ScotianShelf"){
   
 }
 
+#' @title  get.pathdata.tid
+#' @description  Return calculated paths by supplied TID
+#' @import RODBC
+#' @return dataframe
+#' @export
+get.pathdata.tid = function(region = "ScotianShelf", tid = ""){
+  gstring = ""
+  if(region == "Gulf"){
+    gstring = "_GULF"
+  }
+  con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  da = NULL
+  
+  
+  query = paste("SELECT * FROM SCT_PATHS", gstring, " where SCT_PATHS", gstring,".TID = '", tid, "';", sep = "")
+  
+  da = RODBC::sqlQuery(con, query )
+  da = da[order(da$CID, da$POS),]
+  RODBC::odbcClose(con)
+ 
+  
+  return(da)
+  
+}
+
+#' @title  get.path
+#' @description  Return path data
+#' @import ROracle
+#' @return dataframe
+#' @export
+get.path = function(region = "ScotianShelf"){
+  gstring = ""
+  if(region == "Gulf"){
+    gstring = "_GULF"
+  }
+  
+  
+  drv <- dbDriver("Oracle")
+  con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  
+  
+  respat <- ROracle::dbSendQuery(con, paste("select * from SCT_PATH", gstring, sep = ""))
+  respat <- fetch(respat)
+  ROracle::dbDisconnect(con)
+  
+  return(respat)
+}
 
 #' @title  data2Poly
 #' @description  Create polydata

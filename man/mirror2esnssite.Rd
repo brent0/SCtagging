@@ -6,6 +6,9 @@
 \usage{
 mirror2esnssite(region = "ScotianShelf")
 }
+\value{
+status message in case it was called by webpage
+}
 \description{
 ESSENTIAL FUNCTION. Must call after any data entry in order for the website to be up to date!
 }
