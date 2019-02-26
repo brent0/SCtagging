@@ -13,3 +13,4 @@ Collate:
     'TagWebGUI.r'
     'TagPlot.r'
     'otn_kml.r'
+    'SCAccoustic.R'

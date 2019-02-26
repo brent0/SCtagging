@@ -272,7 +272,7 @@ write.acoustic.detections = function(dir = file.path("D:", "OTN", "detections"))
 #' @import ROracle lubridate
 #' @return dataframe
 #' @export
-compress.detections = function(hours.thres = 3)){
+compress.detections = function(hours.thres = 3){
 # The following code simplifies the data by grouping detections. If more than three hours pass
 # a new detection is recorded and the timespans are auusted
   da = get.acoustic.detections()
