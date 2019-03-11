@@ -218,7 +218,7 @@ write.acoustic.detections = function(dir = file.path("D:", "OTN", "detections"))
     da = read.csv(files[i], sep=",", header=T ) 
     print(i)
     if(is.na(ymd_hms(da$datecollected)[1])){
-      da$datecollected = as.character(format.Date(mdy_hm(da$datecollected), format = "%m/%d/%Y %H:%M"))
+      da$datecollected = as.character(format.Date(mdy_hm(da$datecollected), format = "%m/%d/%Y %H:%M:%S"))
       
     }
     else{
@@ -276,8 +276,15 @@ compress.detections = function(hours.thres = 3){
 # The following code simplifies the data by grouping detections. If more than three hours pass
 # a new detection is recorded and the timespans are auusted
   da = get.acoustic.detections()
-  da$TimeStamp = paste(da$YEARCOLLECTED, da$MONTHCOLLECTED, da$DATECOLLECTED, sep = "-")
-da2 = NULL
+  da$TimeStamp = ymd_hms(da$DATECOLLECTED)
+  da$TimeStamp[which(is.na(da$TimeStamp))] = dmy_hm(da$DATECOLLECTED[which(is.na(da$TimeStamp))]) 
+  da$TimeStamp[which(is.na(da$TimeStamp))] = dmy_hms(da$DATECOLLECTED[which(is.na(da$TimeStamp))]) 
+  da$TimeStamp[which(is.na(da$TimeStamp))] = mdy_hm(da$DATECOLLECTED[which(is.na(da$TimeStamp))]) 
+  da$TimeStamp[which(is.na(da$TimeStamp))] = mdy_hms(da$DATECOLLECTED[which(is.na(da$TimeStamp))]) 
+  da = da[order(da$TimeStamp),]
+  
+  
+  da2 = NULL
 da$spliton = paste(as.character(da$STATION), as.character(da$CATALOGNUMBER), sep="")
 na = names(da)
 das = split(da, da$spliton, drop = T)
@@ -293,6 +300,7 @@ for(i in 1:length(das)){
     curchron = mdy_hm(sub$DATECOLLECTED[k])
     if(is.na(curchron))curchron = ymd_hms(sub$DATECOLLECTED[k])
     if(is.na(curchron))curchron = dmy_hm(sub$DATECOLLECTED[k])
+    if(is.na(curchron))curchron = mdy_hms(sub$DATECOLLECTED[k]) 
     if(is.na(curchron))curchron = dmy_hms(sub$DATECOLLECTED[k])
     if(is.null(prevchron)){
       newent = sub[k,]
@@ -302,6 +310,8 @@ for(i in 1:length(das)){
       newent$etime = curchron
     }
     else{
+      print(prevchron)
+      print(curchron)
       if(curchron - prevchron > hours(hours.thres)){
         newent$TimeSpanEnd = sub$TimeStamp[k-1]
         newent$etime = prevchron
