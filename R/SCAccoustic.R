@@ -289,7 +289,7 @@ for(i in 1:length(das)){
   prevchron = NULL
 
   for(k in 1:nrow(sub)){
-    print(sub)
+    
     curchron = mdy_hm(sub$DATECOLLECTED[k])
     if(is.na(curchron))curchron = ymd_hms(sub$DATECOLLECTED[k])
     if(is.na(curchron))curchron = dmy_hm(sub$DATECOLLECTED[k])
@@ -298,27 +298,26 @@ for(i in 1:length(das)){
       newent = sub[k,]
       newent$TimeSpanStart = newent$TimeStamp
       newent$TimeSpanEnd = newent$TimeStamp
-      newent$stime = format(curchron, sep = " ", c("month day, year",  "hh:mm:ss"))
-      newent$etime = format(curchron, sep = " ", c("month day, year",  "hh:mm:ss"))
+      newent$stime = curchron
+      newent$etime = curchron
     }
     else{
       if(curchron - prevchron > hours(hours.thres)){
         newent$TimeSpanEnd = sub$TimeStamp[k-1]
-        newent$etime = format(prevchron, sep = " ", c("month day, year",  "hh:mm:ss"))
+        newent$etime = prevchron
         da2 = rbind(da2, newent)
         newent = sub[k,]
         newent$TimeSpanStart = newent$TimeStamp
-        newent$stime = format.Date(curchron, format = "month day, year  hh:mm:ss")
-        
+        newent$stime = curchron
       }
       else{
         newent$TimeSpanEnd = sub$TimeStamp[k]
-        newent$etime = format(curchron, sep = " ", c("month day, year",  "hh:mm:ss"))      
+        newent$etime = curchron    
       }        
     }    
     if(k == nrow(sub)){
       newent$TimeSpanEnd = sub$TimeStamp[k]
-      newent$etime = format(curchron, sep = " ", c("month day, year",  "hh:mm:ss"))
+      newent$etime = curchron
       da2 = rbind(da2, newent)
     }
     prevchron = curchron
