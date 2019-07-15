@@ -914,15 +914,17 @@ da = rbind(da, read.csv( dir, sep=",", header=T, colClasses = "character" ))
 # 
 dir = file.path( "E:", "OTN", "detections", "zsc_unqualified.csv")
 da = rbind(da, read.csv( dir, sep=",", header=T, colClasses = "character" ))
+#dir = file.path( "E:", "OTN", "detections", "zsc_unqualified_detections_2017.csv")
+#da = rbind(da, read.csv( dir, sep=",", header=T, colClasses = "character" ))
 # 
 
 dir = file.path( "E:", "OTN", "detections", "zsc_matched_detections_on_other_deployments_2016.csv")
 da = rbind(da, read.csv( dir, sep=",", header=T, colClasses = "character" ))
 dir = file.path( "E:", "OTN", "detections", "zsc_matched_detections_on_other_deployments_2017.csv")
 da = rbind(da, read.csv( dir, sep=",", header=T, colClasses = "character" ))
+
 dir = file.path( "E:", "OTN", "detections", "zsc_matched_detections_on_other_deployments_2018.csv")
 da = rbind(da, read.csv( dir, sep=",", header=T, colClasses = "character" ))
-
 
 da$catalognumber = as.character(da$catalognumber)
 da$catalognumber = gsub("ONT", "OTN", da$catalognumber)

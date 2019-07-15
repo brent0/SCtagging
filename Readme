@@ -2,3 +2,6 @@ Must change r temp folder to somthing thAT IS NOT RECOGINIZED BY internet explor
 
 tempstr = paste("TMP = '",unlist(strsplit(tempdir(), "Temp"))[1], "ocpu_t'", sep = "")
 write(tempstr, file=file.path(Sys.getenv('R_USER'), '.Renviron'))
+
+Change internet security settings by opening 'Internet Explorer' click  'tools' -> 'internet options' -> 'security' tab and make sure the boxes shown in IE_Secutity.jpeg are checked.
+

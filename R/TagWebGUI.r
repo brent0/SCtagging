@@ -221,7 +221,7 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
   y = unlist(strsplit(years, ","))
   are = as.character(are)
   y = as.character(y)
-  
+
   str = ""
   
   if(are == "all"){
@@ -546,14 +546,16 @@ tagReturned_Applied = function(are, years, rm.gulf = T){
     z$mov = mean(daysince$nkm)
     z$lmov = max(daysince$nkm)
    pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("distances", are, years,".pdf", sep = "_")))
-    hist(daysince$nkm,breaks=100, col="red",main="Distances Travelled",xlab="Distance(km)")
+   pdf(file.path(paste("distances", are, years,".pdf", sep = "_")))
+   
+   hist(daysince$nkm,breaks=100, col="red",main="Distances Travelled",xlab="Distance(km)")
    dev.off()
-   pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("days.pdf", are, years,".pdf", sep = "_")))
-   hist(daysince$ndays,breaks=100, col="red",main="Days To Last Known Capture",xlab="Time(days)")
-   dev.off()
-   pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("tofirstdays.pdf", are, years,".pdf", sep = "_")))
-   hist(tofirst,breaks=100, col="red", main="Days To First Capture",xlab="Time(days)")
-   dev.off()
+   #pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("days.pdf", are, years,".pdf", sep = "_")))
+   #hist(daysince$ndays,breaks=100, col="red",main="Days To Last Known Capture",xlab="Time(days)")
+   #dev.off()
+   #pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("tofirstdays.pdf", are, years,".pdf", sep = "_")))
+  # hist(tofirst,breaks=100, col="red", main="Days To First Capture",xlab="Time(days)")
+   #dev.off()
     z$day = mean(daysince$ndays)
     z$lday = max(daysince$ndays)
     
@@ -593,7 +595,7 @@ alldata = function(are, years){
     dx$km = NA
     pidinr = 1
     for(i in 1:nrow(dx)){
-      pat = get.paths(as.character(dx$PID[i]))
+      #pat = get.paths(as.character(dx$PID[i]))
       dx$plat[i] = pat$LAT[1]
       dx$plon[i] = pat$LON[1]
       dx$km[i] = pat$DIST[1]
@@ -613,17 +615,26 @@ alldata = function(are, years){
   
   #' @title  sample_ent
   #' @description  Function that enters release data entered in the html app 
-  #' @import RODBC jsonlite stringr opencpu
+  #' @import jsonlite stringr opencpu ROracle DBI
   #' @return message to webpage 
   #' @export
   sample_ent <- function(bdata, sdata){
-    
-    
-    conn = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    # Check connection
-    if (conn == -1){
+ 
+    tryCatch({
+       drv <- DBI::dbDriver("Oracle")
+       con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+    }, warning = function(w) {
+    }, error = function(e) {
       return(toJSON("Connection failed"))
-    }
+    }, finally = {
+    })
+    
+    #conn = RODBC::odbcConnect(dsn=oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+
+     # Check connection
+    # if (conn == -1){
+    #   return(toJSON("Connection failed"))
+    # }
     
     samp = myUrlEncode(sdata)
     
@@ -699,19 +710,20 @@ alldata = function(are, years){
     sampsql = ""
     out = ""
     wrisamp = FALSE
+    writrip = FALSE
     # //////////////////////////////////////////
     #   //Check if sample num exists, if so get sample num
     # // else get num row of sample
     # 
     # 
     
-    #sql = paste("SELECT TRIP_ID from SCT_TRIP where DMY = '", dat,  "' AND TECHNICIAN = '",sam,"'", sep = "")
     
     sql = paste("SELECT TRIP_ID from SCT_TRIP where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND TECHNICIAN = '",sam,"'", sep = "")
     
     
-    
-    result = RODBC::sqlQuery(conn, sql)
+    result <- ROracle::dbSendQuery(con, sql) 
+    result <- ROracle::fetch(result)
+    #result = RODBC::sqlQuery(conn, sql)
     exis = nrow(result)
     
     rowid = ""
@@ -725,59 +737,63 @@ alldata = function(are, years){
     if (exis == 0) {            
       
       sql = "select TRIP_ID from SCT_TRIP"
-      result = RODBC::sqlQuery(conn, sql)
+      result <- ROracle::dbSendQuery(con, sql) 
+      result <- ROracle::fetch(result)
+      #result = RODBC::sqlQuery(conn, sql)
       res = nrow(result) + 300 
       
       
-      if(cfa == "xxxx") sta = "4X"
-      if(cfa == "nens") sta = "NENS"
-      if(cfa == "23") sta = "SENS"
-      if(cfa == "24") sta = "SENS"  
-      if(cfa == "gulf") sta = "GULF"  				 
+      if(cfa == "xxxx") sta = '4X'
+      if(cfa == "nens") sta = 'NENS'
+      if(cfa == "23") sta = 'SENS'
+      if(cfa == "24") sta = 'SENS'  
+      if(cfa == "gulf") sta = 'GULF'  				 
       suba = ""
-      if(sta == "NENS") suba =  "(all)(ens)(nens)(nens_gulf)(allandgulf)"
+      if(sta == "NENS") suba =  '(all)(ens)(nens)(nens_gulf)(allandgulf)'
       if(sta == "SENS"){
         if(cfa == "23")
-          suba =  "(cfa23)(all)(ens)(sens)(allandgulf)(cfa23zoom)(cfa24zoom)(all.holes)"
+          suba =  '(cfa23)(all)(ens)(sens)(allandgulf)(cfa23zoom)(cfa24zoom)(all.holes)'
         if(cfa == "24")
-          suba =  "(cfa24)(all)(ens)(sens)(allandgulf)(cfa24zoom)(cfa24zoom)(all.holes)"
+          suba =  '(cfa24)(all)(ens)(sens)(allandgulf)(cfa24zoom)(cfa24zoom)(all.holes)'
       }
-      if(sta == "4X") suba =  "(all)(ens)(cfa4x)(allandgulf)";
-      if(sta == "GULF") suba =  "(allandgulf)";
+      if(sta == "4X") suba =  '(all)(ens)(cfa4x)(allandgulf)';
+      if(sta == "GULF") suba =  '(allandgulf)';
       
       
+      reldat = lubridate::dmy(dat)
       
+      tripsql = paste("INSERT INTO SCT_TRIP (TRIP_ID, TECHNICIAN, VESSEL, CFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",SQLsafty(ves),"' , '",cfa,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
+      #sql = paste("INSERT INTO SCT_TRIP (TRIP_ID, TECHNICIAN, VESSEL, CFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",SQLsafty(ves),"' , '",cfa,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , ",reldat,";", sep = "")
       
-      sql = paste("INSERT INTO SCT_TRIP (TRIP_ID, TECHNICIAN, VESSEL, CFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",SQLsafty(ves),"' , '",cfa,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'));", sep = "")
-      
-      result = RODBC::sqlQuery(conn, sql)
-      
+  writrip = T
+       
+      #result <- ROracle::fetch(result)
+      #result = RODBC::sqlQuery(conn, sql)
+     
       
       
       #   fwrite($myfile, $sql);
-      if (length(result) == 0){
-        out =  paste(out, "\nNew Trip ", res, " Successfully Added.")
-      }
-      else{
-        out =  paste(out,"\nError: ",  result)
-        return(out)
-        die()
-      }
+    
       
     }
     
     
     
     sql = paste("SELECT SAMPLE_ID FROM SCT_SAMPLE where TRIP = '",res,"' AND LAT_DD_DDDD = '",rlat,"' AND LONG_DD_DDDD = '",rlon,"'", sep = "")
-    result = RODBC::sqlQuery(conn, sql)
+
+    result <- ROracle::dbSendQuery(con, sql) 
+    result <- ROracle::fetch(result)
+    #result = RODBC::sqlQuery(conn, sql)
     res2 = nrow(result) 
-    
+
     if (res2 > 0){
       samp = result[,1]
     }
     if (res2 == 0) {   
       sql = "select SAMPLE_ID from SCT_SAMPLE"
-      result = RODBC::sqlQuery(conn, sql)
+      result <- ROracle::dbSendQuery(con, sql) 
+      result <- ROracle::fetch(result)
+      #result = RODBC::sqlQuery(conn, sql)
       samp = as.character(nrow(result) + 3500) 
       
       sampsql = paste("INSERT INTO SCT_SAMPLE VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",SQLsafty(com),"')", sep = "")
@@ -801,7 +817,10 @@ alldata = function(are, years){
           
           
           sql = paste("SELECT TAG_ID FROM SCT_BIO where TAG_ID = '", dd$`Tag Num`[i],"'", sep = "")
-          result = RODBC::sqlQuery(conn, sql)
+         
+          result <- ROracle::dbSendQuery(con, sql) 
+          result <- ROracle::fetch(result)
+          #result = RODBC::sqlQuery(conn, sql)
           ntn = nrow(result) 
           if(ntn > 0) {
             out = paste(out, "\nCrab with tag " , dd$`Tag Num`[i], " has already been added!! ", sep = "")
@@ -813,7 +832,7 @@ alldata = function(are, years){
       }
     }		
     
-    
+  
     
     if(writedata){
       for(i in 1:nrow(dd)){
@@ -821,10 +840,13 @@ alldata = function(are, years){
           if(!is.na(dd$`Tag Num`[i])){
             if(is.null(dd$`Durometer`[i])) dd$`Durometer`[i] = NA
             sql = paste("INSERT INTO SCT_BIO VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$`Claw`[i],"','",dd$`Shell Cond`[i],"','",dd$`Durometer`[i],"')", sep = "")
-            result = RODBC::sqlQuery(conn, sql)
-            
+            result <- ROracle::dbSendQuery(con, sql) 
+           # result <- ROracle::fetch(result)
+             #result = RODBC::sqlQuery(conn, sql)
+        
             #   fwrite($myfile, $sql);
-            if (length(result) == 0){
+            #if (length(result) == 0){
+              if(dbGetInfo(result, what = "rowsAffected") > 0){
               
               out =  paste(out, "\nCrab with  tag " , dd$`Tag Num`[i], " successfully added", sep = "")
             }
@@ -839,24 +861,44 @@ alldata = function(are, years){
         
       }
       if(wrisamp){
-        result = RODBC::sqlQuery(conn, sampsql)
+     
+        rs = ROracle::dbSendQuery(con, sampsql) 
+       #result <- ROracle::fetch(result)
+        #result = RODBC::sqlQuery(conn, sampsql)
+
         
-        
-        if (length(result) == 0){
+        #if (length(result) == 0){
+        if(dbGetInfo(rs, what = "rowsAffected") == 1){
           out = paste(out,"\nSample from trip ",res, " with pos ",lat, " " ,lon, " successfully added", sep = "")
         }
         else{
-          out =  paste(out, "\nError: " ,sampsql , "\n" , result, "\n", sep = "")
+          out =  paste(out, "\nError: " ,sampsql , "\n" , rs, "\n", sep = "")
           return(out)
           die()
         }
         
       }
+      if(writrip){
+      
+        result2 <- ROracle::dbSendQuery(con, tripsql) 
+       
+        if(dbGetInfo(result2, what = "rowsAffected") == 1){
+        #if (length(result) == 0){
+          out =  paste(out, "\nNew Trip ", res, " Successfully Added.")
+        }
+        else{
+          out =  paste(out,"\nError: ",  result2)
+          return(out)
+          die()
+        }
+      }
+      ROracle::dbCommit(con)
     }
     
     out = paste(out,"\n\n", sep = "")
-    
-    odbcClose(conn)
+  
+    ROracle::dbDisconnect(con)
+    #RODBC::odbcClose(conn)
     return(out)
     
   }

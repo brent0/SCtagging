@@ -613,7 +613,7 @@ get.capturedatacc = function(){
 }
 #' @title  get.capturedata.oracle
 #' @description  Get all tag data view from oracle database 
-#' @import ROracle
+#' @import ROracle DBI
 #' @return dataframe of data
 #' @export
 get.capturedata.oracle = function(){
@@ -768,11 +768,11 @@ enter.returns.public = function(){
 #' @param type The type of calculation, either 'random.walk' or 'least.cost'. Defaults to random.walk
 #' @param redo Set redo = TRUE if you want to rewrite all data, FALSE to only update new entries
 #' @param region Either 'ScotianShelf' or 'Gulf'
-#' @import PBSmapping raster gdistance ROracle RMySQL rJava
+#' @import PBSmapping raster gdistance ROracle RMySQL rJava DBI
 #' @return dataframe
 #' @export
 shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.tif", package = "SCtagging"), neighborhood = 16, type = "random.walk", redo = F, region = "ScotianShelf"){
-  drv <- dbDriver("Oracle")
+  drv <- DBI::dbDriver("Oracle")
     gstring = ""
   if(region == "Gulf") gstring = "_GULF"
   x = get.capturedata(region)
@@ -812,24 +812,31 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
   dftowrite = NULL
   df2towrite = NULL
   dxtowrite = NULL
-  append = F
-  overwrite = T
+
   if(!redo){
+
     con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    respat <- ROracle::dbSendQuery(con, "select * from SCT_PATHS") 
+    respat <- ROracle::dbSendQuery(con, "select * from SCT_PATH") 
     da <- fetch(respat)
     ROracle::dbDisconnect(con)
-    append = T
-    overwrite = F    
-    goodind = which(paste(as.character(x$PID), as.character(x$capdate)) %in% paste(as.character(da$id), as.character(da$cdat)))
+  
+    goodind = which(paste(as.character(x$PID), format(x$capdate, "%d/%m/%Y")) %in% paste(as.character(da$TID), as.character(da$CDATE)))
     if(length(goodind) > 0) x = x[-goodind,]
     zeroind = which(as.numeric(x$caplat) == 0 | x$caplat == 'unknown')
     if(length(zeroind) > 0) x = x[-zeroind,]
     
-    
+    count = 1
+    previd = ""
     
     for(i in 1:nrow(x)){
-      
+      print(previd)
+      if(x$PID[i] == previd){
+        count = count+1
+      }
+      else{
+        previd = x$PID[i]
+        count = 1
+      }
       start <- c(as.numeric(x$rellon[i]), as.numeric(x$rellat[i]))
       end <- c(as.numeric(x$caplon[i]), as.numeric(x$caplat[i]))
       
@@ -945,15 +952,15 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     names(df2towrite) = c("TID", "CID", "CDATE", "DIST")
     dxtowrite = data.frame(dxtowrite)
     names(dxtowrite) = c("TID", "CID", "POS", "LON", "LAT")
-    drv <- dbDriver("Oracle")
+    drv <- DBI::dbDriver("Oracle")
     if(redo){
       
-      con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-      
-      if(dbExistsTable(con, "SCT_PATHS"))dbSendQuery(con, "DROP TABLE SCT_PATHS")
-      if(dbExistsTable(con, "SCT_PATH"))dbSendQuery(con, "DROP TABLE SCT_PATH")
-      
-      dbDisconnect(con)
+      # con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+      # 
+      # if(dbExistsTable(con, "SCT_PATHS"))dbSendQuery(con, "DROP TABLE SCT_PATHS")
+      # if(dbExistsTable(con, "SCT_PATH"))dbSendQuery(con, "DROP TABLE SCT_PATH")
+      # 
+      # dbDisconnect(con)
     }
     Sys.setenv(TZ = "America/Halifax")
     Sys.setenv(ORA_SDTZ = "America/Halifax")
@@ -1011,11 +1018,16 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     # closeportSC(SCtunnel)
 
     con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    
-    dbWriteTable(con,"SCT_PATHS", dxtowrite)
-    dbWriteTable(con,"SCT_PATH", df2towrite)
+    if(redo){
+    dbWriteTable(con,"SCT_PATHS", dxtowrite, overwrite = T)
+    dbWriteTable(con,"SCT_PATH", df2towrite, overwrite = T)
+
+    }
+    else{
+      dbWriteTable(con,"SCT_PATHS", dxtowrite, append = T)
+      dbWriteTable(con,"SCT_PATH", df2towrite, append = T)
+    }
     dbDisconnect(con)
-    
     print("New paths calculated and written to paths table.")
   }
   else{
@@ -2188,7 +2200,7 @@ get.path = function(region = "ScotianShelf"){
   }
   
   
-  drv <- dbDriver("Oracle")
+  drv <- DBI::dbDriver("Oracle")
   con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
   
   
@@ -2350,6 +2362,7 @@ absolutely.in.area = function(area, abslon, abslat){
   p5 = c(-59.11881785180857,43.67610276909335)
   p6 = c(-56.5, 44)
   p7 = c(-57.78560987011954,46.00106076110973) 
+
   are = rbind(p1, p2, p3, p4, p5, p6, p7)
   pa = Polygon(are)
   paa = Polygons(list(pa), "s1")
@@ -2564,19 +2577,53 @@ absolutely.in.area = function(area, abslon, abslat){
   return(bo)
   
 }
+
+
+#' @title degminsec2decdeg
+#' @description  Function that converts degree minutes decimal seconds to decimal degrees 
+#' @param ddmmss.ss
+#' @return numeric converted coordinate
+#' @import stringr
+#' @export
+degmin2decdeg = function(ddmmss.ss){
+  dms = as.character(ddmmss.ss)
+  neg = grepl("-", dms)
+  dms = str_replace(dms, "-", "")
+  decsec = unlist(strsplit(dms, "\\."))[2]
+  if(is.na(decsec)) decsec = "0" 
+  decsec = paste(".", decsec, sep = "") 
+  degminsec = unlist(strsplit(dms, "\\."))[1]
+  sec = substr(degminsec, nchar(degminsec)-1, nchar(degminsec))
+  min = substr(degminsec, nchar(degminsec)-3, nchar(degminsec)-2)
+  deg = substr(degminsec, 1, nchar(degminsec)-4)
+  sec = as.numeric(decsec) + as.numeric(sec)
+  decmin = as.numeric(min) + sec/60
+  decdeg = as.numeric(deg) + decmin/60
+  if(neg) decdeg = decdeg*-1
+return(decdeg)  
+  
+}
+  
+
 #' @title  absolutely.in.area2
 #' @description  Function that determines if a list of positions are inside defined polygons 
 #' @param area The area name exa. 'cfa23' 'cfa24' 'nens' 'sens' 'gulf' 'cfa4x'
 #' @param lon The longitude list
 #' @param lat The latitude list
-#' @import sp rgeos
+#' @import sp rgeos rgdal
 #' @return list of TRUE or FALSE values
 #' @export
 absolutely.in.area2 = function(area, abslon, abslat){
-  
+  polyredo = F
   are = rep("unk", length(abslat))
   
-  p1 = c(-60.41568418984078,47.03853523297152)
+ # latlong =  "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=63.390675 +lon_0=-91.86666666666666 +x_0=6200000 +y_0=3000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+ # latlong = "+init=epsg:4326"
+ # latlong = "+init=epsg:3347 +proj=lcc +lat_1=49 +lat_2=77 +lat_0=63.390675 +lon_0=-91.86666666666666 +x_0=6200000 +y_0=3000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+  latlong = "+proj=longlat +datum=NAD27 +no_defs"
+ # latlong = "+init=epsg:3347"
+  
+   p1 = c(-60.41568418984078,47.03853523297152)
   p2 = c(-60.00014897319883,47.83408958793515 )
   p3 = c(-60, 50.3)
   p4 = c(-68, 50)
@@ -2589,60 +2636,268 @@ absolutely.in.area2 = function(area, abslon, abslat){
   pa = Polygon(are)
   paa = Polygons(list(pa), "s1")
   gulf = SpatialPolygons(list(paa), 1:1)
-  
-  
-  
-  p1 = c(-60.41568418984078,47.03853523297152)
-  p2 = c(-60.00014897319883,47.83408958793515 )
-  p3 = c(-57.5, 46)
-  p4 = c(-57.78560987011954,46.00106076110973) 
-  p5 = c(-59.85247480316924,46.00291960992756) 
-  p6 = c(-61, 46)
-  p7 = c(-60.41568418984078,47.03853523297152)
-  are = rbind(p1, p2, p3, p4, p5, p6, p7)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  nens = SpatialPolygons(list(paa), 1:1)
-  
-  
-  
-  p1 = c(-57.78560987011954,46.00106076110973) 
-  p2 = c(-59.85247480316924,46.00291960992756) 
-  p3 = c(-61, 46)
-  p4 = c(-60.66040620990439,45.58083805201212)
-  p5 = c(-59.11881785180857,43.67610276909335)
-  p6 = c(-56.5, 44)
-  p7 = c(-57.78560987011954,46.00106076110973) 
-  are = rbind(p1, p2, p3, p4, p5, p6, p7)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  twothree = SpatialPolygons(list(paa), 1:1)
-  
-  p1 = c(-61, 46)
-  p2 = c(-60.66040620990439,45.58083805201212)
-  p3 = c(-59.11881785180857,43.67610276909335)
-  p4 = c(-63.33161397633095,42.50186912534272)
-  p5 = c(-63.33296001561555,44.33343763428088)
-  p6 = c(-63.52502801857509,44.5005704612574)
-  p7 = c(-64, 45)
-  p8 = c(-61, 46)
+  if(polyredo){
+    SPDF = SpatialPolygonsDataFrame(gulf, data.frame(N = c("cfa_gulf"), row.names = c("s1")))
+    proj4string(SPDF) = CRS(latlong)
+    writeOGR(SPDF, layer = 'cfa_gulf', 'C:/temp', driver="ESRI Shapefile")
+  }  
+ 
+ 
+
+ 
+ 
+ 
+ #Points taken from schedule XI from Atlantic Fishery Regulations, 1985 (SOR/86-21)
+ #https://laws-lois.justice.gc.ca/PDF/SOR-86-21.pdf
+ 
+ 
+  p1 = c(-60.00,degmin2decdeg("475000.00")) #Northern point
+  #Point #3 from PART IIB / PARTIE IIB CRAB FISHING AREAS
+  p2 = c(degmin2decdeg("-580900.00"), degmin2decdeg("461700.00"))
+  #Point #2 from PART IIB / PARTIE IIB CRAB FISHING AREAS
+  p3 = c(degmin2decdeg("-574700.00"), 46) 
+  #Point #5 from PART IIB / PARTIE IIB CRAB FISHING AREAS
+  p4 = c(degmin2decdeg("-595100.00"),46) 
+  #Point #8 from PART IIB / PARTIE IIB CRAB FISHING AREAS
+  p5 = c(degmin2decdeg("-604732.00"), degmin2decdeg("-455725.00"))
+  #Point #28 from PART III / PARTIE III CRAB FISHING AREAS
+  p6 = c(degmin2decdeg("-602455.00"), degmin2decdeg("470215.00"))
+  #Point #29 from PART III / PARTIE III CRAB FISHING AREAS
+  p7 = c(degmin2decdeg("-601740.00"), degmin2decdeg("471625.00"))
+  p8 = c(-60.00,degmin2decdeg("475000.00")) #Northern point
   are = rbind(p1, p2, p3, p4, p5, p6, p7, p8)
   pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  twofour = SpatialPolygons(list(paa), 1:1)
+  paa = Polygons(list(pa), "s2")
+  nens = SpatialPolygons(list(paa), 1:1)
+ 
+  SPDF = SpatialPolygonsDataFrame(nens, data.frame(N = c("cfa_20-22(n-ens)"), row.names = c("s2")))
+  if(polyredo){
+    proj4string(SPDF) = CRS(latlong)
+    writeOGR(SPDF, layer = 'cfa20-22(N-ENS)', 'C:/temp', driver="ESRI Shapefile")
+  }
   
   
-  p1 = c(-63.52502801857509,44.5005704612574)
-  p2 = c(-63.33296001561555,44.33343763428088)
-  p3 = c(-63.33161397633095,42.50186912534272)
-  p4 = c(-66.5, 42)
-  p5 = c(-65, 45.5)
-  p6 = c(-63.52502801857509,44.5005704612574)
-  are = rbind(p1, p2, p3, p4, p5, p6)
+# 1)	      46?00'			     59?51'
+# 2)	      46?00'			     57?47'
+# 3)	      43?24' 			     54?48' THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
+# 4)	      41?05'			     57?30'
+# 5)	      45?37'			     60?31'
+# 6)	      46?00'			     59?51'
+#NOTE:	WHEN THE GEOGRAPHIC BOUNDARY OF AN AREA IS EXPRESSED IN LATITUDE AND LONGITUDE, THOSE POINT REFERENCES ARE BASED ON THE GEODESIC SYSTEM NORTH AMERICAN DATUM 1927 (NAD27).
+  
+  
+    # Inside outside line east of 
+  # p5 = c(-59.38666666666666666666667 43.9186111111111111111116666667)	
+  #p6 = c(-56.666666666666666667, 45.0833333333333333333)	
+  
+  p1 = c(degmin2decdeg("-595100.00"), 46)
+  p2 = c(degmin2decdeg("-574700.00"), 46)
+  #p3 = c(-56.40172552969,44.79510535390)
+  #pmich = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
+  #pmich = cbind(as.numeric(as.character(pmich$lon)), as.numeric(as.character(pmich$lat)))
+ 
+  #pmich = pmich[which(pmich[,1] > -56.5 & pmich[,1] < -56 & pmich[,2] > 43 & pmich[,2] < 45),]
+  
+  #p4 = c(-56.15570315338,44.58068076985)
+  p5 = c(degmin2decdeg("-544800.00"), degmin2decdeg("432400.00"))
+  p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
+  p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
+  p200 = p200[which(p200[,2] < 43.6),]
+  p200 = p200[which(p200[,1] < -54.808),]
+  p200 = p200[which(p200[,1] > -57.496),]
+  ind = which(p200[,1] > -56.5 & p200[,1] < -56 & p200[,2] > 43)
+  p200 = p200[-ind,] 
+     p6 = c(-57.5, degmin2decdeg("410500.00"))
+  p7 = c(degmin2decdeg("-603100.00"),degmin2decdeg("453700.00"))
+  p8 = c(degmin2decdeg("-595100.00"), 46)
+  #p2 = c(-58.516666666666666666666667,45.61666666666666666666667)
+ # p3 = c(-59.11881785180857,43.67610276909335)
+ # p4 = c(-63.33161397633095,42.50186912534272)
+ # p5 = c(-63.33296001561555,44.33343763428088)
+  #p6 = c(-63.52502801857509,44.5005704612574)
+  #p7 = c(-64, 45)
+ # p7 = c(-61, 46)
+#  are = rbind(p1, p2, p3, pmich, p4, p5, p200, p6, p7, p8)
+  are = rbind(p1, p2, p5, p200, p6, p7, p8)
+  
+    pa = Polygon(are)
+  paa = Polygons(list(pa), "s3")
+  twothree = SpatialPolygons(list(paa), 1:1)
+  
+ SPDF = SpatialPolygonsDataFrame(twothree, data.frame(N = c("cfa_23"), row.names = c("s3")))
+if(polyredo){
+ proj4string(SPDF) = CRS(latlong)
+ writeOGR(SPDF, layer = 'cfa23', 'C:/temp', driver="ESRI Shapefile")
+}   
+
+ #Write cfa24 all so that we can divide later
+ if(polyredo){
+   
+   p11 = c(degmin2decdeg("-612545.00"), degmin2decdeg("453810.00"))
+   p10 = c(degmin2decdeg("-612415.00"),    degmin2decdeg("453830.00"))
+   p9 = c(degmin2decdeg("-604832.00"), degmin2decdeg("455732.00"))
+   p8 = c(degmin2decdeg("-604732.00"), degmin2decdeg("455725.00"))
+   p6 = c(degmin2decdeg("-603100.00"), degmin2decdeg("453700.00"))
+   p7 = c(degmin2decdeg("-573000.00"), degmin2decdeg("410500.00"))
+   p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
+   p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
+   p200 = p200[which(p200[,2] < 45.2),]
+   p200 = p200[which(p200[,1] < -57.5),]
+   p200 = p200[which(p200[,1] > -70),]
+   
+   ind = which(p200[,1] > -66.21 & p200[,1] < -59 & p200[,2] > 42)
+   p200 = p200[-ind,] 
+
+   p11 = c(degmin2decdeg("-612545.00"), degmin2decdeg("453810.00"))
+   are = rbind(p11, p10, p9, p8, p6, p7, p200, p11)
+   
+   pa = Polygon(are)
+   paa = Polygons(list(pa), "s3")
+   twofourall = SpatialPolygons(list(paa), 1:1)
+   
+   SPDF = SpatialPolygonsDataFrame(twofourall, data.frame(N = c("cfa_24_all"), row.names = c("s3")))
+   
+     proj4string(SPDF) = CRS(latlong)
+     writeOGR(SPDF, layer = 'cfa24_all', 'C:/temp', driver="ESRI Shapefile")
+
+     
+      #    1.            44° 30' 00"N      63° 31' 12" W
+ #     2.            44° 20' 00"N      63° 20' 00" W
+ #    3.            39° 00' 00"N      63° 20' 00" W
+     
+     p1 = c(degmin2decdeg("-633112.00"), degmin2decdeg("443000.00"))
+     p2 = c(degmin2decdeg("-632000.00"),    degmin2decdeg("442000.00"))
+     p3 = c(degmin2decdeg("-632000.00"), degmin2decdeg("390000.00"))
+     p4 = c(-70, 38)
+     p5 = c(-75, 50)
+     
+     are = rbind(p1, p2, p3, p4, p5, p1)
+     
+     pa = Polygon(are)
+     paa = Polygons(list(pa), "s4")
+     twofourw = SpatialPolygons(list(paa), 1:1)
+     
+     SPDF = SpatialPolygonsDataFrame(twofourw, data.frame(N = c("cfa_24_w"), row.names = c("s4")))
+     
+     proj4string(SPDF) = CRS(latlong)
+     writeOGR(SPDF, layer = 'cfa24_W', 'C:/temp', driver="ESRI Shapefile")
+     
+   }
+ 
+# #From licence conditions CFA23
+# #NAD27
+# nadlatlong = "+proj=longlat +datum=NAD27 +no_defs"
+# p1 = c(-59.849166666666666666666667,46)
+# p2 = c(-57.7991666666666666666667,46)
+# p3 = c(-54.7991666666666666666667,43.4)
+# #THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
+# p4 = c(-57.498888888888888888883333333,41.083611111111111111166666667)		
+# p5 = c(-60.5158333333333333333333333,45.616666666666666667)	
+# p6 = c(-59.849166666666666666666667,46)		
+# 
+# 
+#               are = rbind(p1, p2, p3, p4, p5, p6)
+#               pa = Polygon(are)
+#               paa = Polygons(list(pa), "s9")
+#               twothree = SpatialPolygons(list(paa), 1:1)
+#               
+#               SPDF = SpatialPolygonsDataFrame(twothree, data.frame(N = c("cfa_23_lic"), row.names = c("s9")))
+#               proj4string(SPDF) = CRS(nadlatlong)
+#               writeOGR(SPDF, layer = 'cfa23_lic', 'C:/temp', driver="ESRI Shapefile")
+#               
+#               
+# CFA 24 - EAST IS DEFINED AS THOSE PORTIONS OF CANADIAN FISHERIES WATERS BOUNDED BY RHUMB LINES (SIMILAR TO STRAIGHT LINES PLOTTED ON A NAUTICAL CHART), THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT, AND THE COASTLINE OF NOVA SCOTIA JOINING THE FOLLOWING POINTS IN THE ORDER IN WHICH THEY ARE LISTED BELOW:
+#   
+#   POINT    NORTH LATITUDE   WEST LONGITUDE
+# 
+# 1)	      45?37'			     60?31'
+# 2)	      41?05'			     57?30'	THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
+# 3)	      40?30' 			     63?20' 
+# 4)	      44?20'			     63?20'
+# 5)	      44?30'			     63?30'
+# 6)	      44?30'			     63?31.5'
+# 7)	      45?37'			     60?31'
+p1 = c(-60.51666666666666666666666666666667, 45.61666666666666666666666666666667)
+p2 = c(-57.5,    41.08333333333333333333333333333333)
+p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
+p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
+p200 = p200[which(p200[,2] < 41.2),]
+p200 = p200[which(p200[,1] < -57.5),]
+p200 = p200[which(p200[,1] > -63.3333333333333333333),]
+
+p3 = c(-63.33333333333333333333333333333333, 40.5)
+p4 = c(-63.33333333333333333333333333333333, 44.33333333333333333333333333333333)
+p5 = c(-63.5, 44.5)
+p6 = c(-63.525, 44.5)
+p7 = c(-60.51666666666666666666666666666667, 45.61666666666666666666666666666667)
+
+# 
+# p1 = c(-57.78560987011954,46.00106076110973) 
+# p2 = c(-59.85247480316924,46.00291960992756) 
+# p3 = c(-61, 46)
+# p4 = c(-60.66040620990439,45.58083805201212)
+# p5 = c(-59.11881785180857,43.67610276909335)
+# p6 = c(-56.5, 44)
+# p7 = c(-57.78560987011954,46.00106076110973) 
+are = rbind(p1, p2, p200, p3, p4, p5, p6, p7)
+pa = Polygon(are)
+paa = Polygons(list(pa), "s4")
+twofour = SpatialPolygons(list(paa), 1:1)
+
+
+SPDF = SpatialPolygonsDataFrame(twofour, data.frame(N = c("cfa_24"), row.names = c("s4")))
+# proj4string(SPDF) = CRS(latlong)
+# writeOGR(SPDF, layer = 'cfa24', 'C:/temp', driver="ESRI Shapefile")
+
+
+
+# 1. FISHING IS AUTHORIZED IN THE CRAB FISHING AREA THAT IS VALIDATED BELOW DURING THE TIME SPECIFIED IN THE LICENCE CONDITION OR UNTIL THE QUOTA IS REACHED, WHICHEVER COMES FIRST:
+#   
+#   THAT PORTION OF CRAB FISHING AREA 24 DESCRIBED AS WEST OF A STRAIGHT LINE JOINING THE FOLLOWING POINTS IN THE ORDER IN WHICH THEY APPEAR.
+# 
+# POINT	LATITUDE	LONGITUDE
+# 
+# 1.	44  30' 00""N	63  31' 12"" W
+# 2.	44  20' 00""N	63  20' 00"" W
+# 3.	39  00' 00""N	63  20' 00"" W
+
+p1 = c(-63.52, 44.5)
+p2 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
+#p3 = c(-63.33333333333333333333333333333333,39)
+p3 = c(-63.33333333333333333333333333333333, 40.5)
+p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
+p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
+p200 = p200[which(p200[,2] < 45.6),]
+p200 = p200[which(p200[,1] <  -63.3333333333333333333),]
+p200 = p200[which(p200[,1] > -68),]
+ind = which(p200[,1] > -66.213641822 & p200[,2] > 43.25)
+p200 = p200[-ind,] 
+
+
+pe = c(-63.52, 44.5)
+#   p1 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
+#   p2 =c(-63.33333333333333333333333333333333, 40.5)
+#   p3 = c(-65.8790362550903,40.0530157742342)
+#   p4 = c(-65.6997185793320,40.4513853244497)
+#   p5 = c(-67.74305555556,42.88722222201)
+# p6 = c(-67.4055058928356,43.8333320617655)
+# p7 = c(-66.9031298,43.8333306)
+#        p8 = c(-66.903129569,45.058746266)
+# 
+#   p9 = c(-65, 45.5)
+#   p10 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
+#   
+#   are = rbind(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10)
+are = rbind(p1, p2, p3, p200, pe)
+
   pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
+  paa = Polygons(list(pa), "s5")
   xxxx = SpatialPolygons(list(paa), 1:1)
   
+  SPDF = SpatialPolygonsDataFrame(xxxx, data.frame(N = c("cfa_4x"), row.names = c("s5")))
+  # proj4string(SPDF) = CRS(latlong)
+  # writeOGR(SPDF, layer = 'cfa4x', 'C:/temp', driver="ESRI Shapefile")
+  # 
   p1 = c(-61.4,44)
   p2 = c(-61.4,45.5)
   p3 = c(-58,45.5)
@@ -2677,103 +2932,7 @@ absolutely.in.area2 = function(area, abslon, abslat){
   twothreez = SpatialPolygons(list(paa), 1:1)
   
   
-  
-  p1 = c(-60.41568418984078,47.03853523297152)
-  p2 = c(-60.00014897319883,47.83408958793515 )
-  p3 = c(-60, 50.3)
-  p4 = c(-68, 50)
-  p5 = c(-65.3, 44.25)
-  p6 = c(-61, 46)
-  p7 = c(-60.41568418984078,47.03853523297152)
-  are = rbind(p1, p2, p3, p4, p5, p6, p7)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  gulf = SpatialPolygons(list(paa), 1:1)
-  
-  
-  p1 = c(-60.41568418984078,47.03853523297152)
-  p2 = c(-60.00014897319883,47.83408958793515 )
-  p3 = c(-57.5, 46)
-  p4 = c(-57.78560987011954,46.00106076110973) 
-  p5 = c(-59.85247480316924,46.00291960992756) 
-  p6 = c(-61, 46)
-  p7 = c(-60.41568418984078,47.03853523297152)
-  are = rbind(p1, p2, p3, p4, p5, p6, p7)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  nens = SpatialPolygons(list(paa), 1:1)
-  
-  
-  p1 = c(-57.78560987011954,46.00106076110973) 
-  p2 = c(-59.85247480316924,46.00291960992756) 
-  p3 = c(-61, 46)
-  p4 = c(-60.66040620990439,45.58083805201212)
-  p5 = c(-59.11881785180857,43.67610276909335)
-  p6 = c(-56.5, 44)
-  p7 = c(-57.78560987011954,46.00106076110973) 
-  are = rbind(p1, p2, p3, p4, p5, p6, p7)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  twothree = SpatialPolygons(list(paa), 1:1)
-  
-  p1 = c(-61, 46)
-  p2 = c(-60.66040620990439,45.58083805201212)
-  p3 = c(-59.11881785180857,43.67610276909335)
-  p4 = c(-63.33161397633095,42.50186912534272)
-  p5 = c(-63.33296001561555,44.33343763428088)
-  p6 = c(-63.52502801857509,44.5005704612574)
-  p7 = c(-64, 45)
-  p8 = c(-61, 46)
-  are = rbind(p1, p2, p3, p4, p5, p6, p7, p8)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  twofour = SpatialPolygons(list(paa), 1:1)
-  
-  
-  p1 = c(-63.52502801857509,44.5005704612574)
-  p2 = c(-63.33296001561555,44.33343763428088)
-  p3 = c(-63.33161397633095,42.50186912534272)
-  p4 = c(-66.5, 42)
-  p5 = c(-65, 45.5)
-  p6 = c(-63.52502801857509,44.5005704612574)
-  are = rbind(p1, p2, p3, p4, p5, p6)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  xxxx = SpatialPolygons(list(paa), 1:1)
-  
-  p1 = c(-61.4,44)
-  p2 = c(-61.4,45.5)
-  p3 = c(-58,45.5)
-  p4 = c(-58,44)
-  p5 = c(-61.4,44)
-  are = rbind(p1, p2, p3, p4, p5)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  holes = SpatialPolygons(list(paa), 1:1)
-  
-  
-  p1 = c(-62.5,43.8)
-  p2 = c(-62.5,45.7)
-  p3 = c(-59.2,45.7)
-  p4 = c(-59.2,43.8)
-  p5 = c(-62.5,43.8)
-  are = rbind(p1, p2, p3, p4, p5)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  twofourz = SpatialPolygons(list(paa), 1:1)
-  
-  
-  
-  
-  p1 = c(-60.6,44.1)
-  p2 = c(-60.6,46.1)
-  p3 = c(-57.75,46.1)
-  p4 = c(-57.75,44.1)
-  p5 == c(-60.6,44.1)
-  are = rbind(p1, p2, p3, p4, p5)
-  pa = Polygon(are)
-  paa = Polygons(list(pa), "s1")
-  twothreez = SpatialPolygons(list(paa), 1:1)
+
   
   bol = NULL
   for(i in 1:length(abslon)){

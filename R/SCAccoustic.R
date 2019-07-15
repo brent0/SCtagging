@@ -274,7 +274,7 @@ write.acoustic.detections = function(dir = file.path("D:", "OTN", "detections"))
 #' @export
 compress.detections = function(hours.thres = 3){
 # The following code simplifies the data by grouping detections. If more than three hours pass
-# a new detection is recorded and the timespans are auusted
+# a new detection is recorded and the timespans are ajusted
   da = get.acoustic.detections()
   da$TimeStamp = ymd_hms(da$DATECOLLECTED)
   da$TimeStamp[which(is.na(da$TimeStamp))] = dmy_hm(da$DATECOLLECTED[which(is.na(da$TimeStamp))]) 
