@@ -6,6 +6,9 @@
 \usage{
 degmin2decdeg(ddmmss.ss)
 }
+\arguments{
+\item{ddmmss.ss}{The coordinate to convert}
+}
 \value{
 numeric converted coordinate
 }

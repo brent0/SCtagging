@@ -36,19 +36,29 @@ var i = 0;
     
   });
 	
-	var req = ocpu.rpc("SC_Stats_Capture",{are: area, years: yearArray, region: reg}, function(message){
-		if(message == false){
-		  alert(message);
+	var req = ocpu.rpc("SC_Stats_Capture",{are: area, years: yearArray, region: reg},   function(output){
+		if(output == false){
+		   alert(JSON.stringify(output));
 		}
 		else{
-		
-		alert(message);
-			
+			 document.getElementById('resbak').innerHTML = JSON.stringify(output);
 		}		
-	});
-	req.fail(function(){
-		alert("R returned an error: " + req.responseText);
-	});
+	 });
+	 req.fail(function(){
+	  	alert("R returned an error: " + req.responseText);
+	 });
+	 
+	 	var req = ocpu.rpc("SC_Stats_Capture_Table",{are: area, years: yearArray, region: reg},   function(output){
+		if(output == false){
+		   alert(JSON.stringify(output));
+		}
+		else{
+			 document.getElementById('resbak2').innerHTML = JSON.stringify(output);
+		}		
+	 });
+	 req.fail(function(){
+	  	alert("R returned an error: " + req.responseText);
+	 });
 	
 }
 
@@ -146,6 +156,11 @@ Select Area and Year(s) of interest
 
 </form>
 
+</br>
+<span id="resbak"></span>
+</br>
+<span id="resbak2"></span>
+</br></br>
 
 		</br><div><pcontsmall>&nbsp;&nbsp;
 	<!--	$f = fopen("/home3/enssnowc/public_html/snowcrabgroup/tag/stats.txt", "r"); -->

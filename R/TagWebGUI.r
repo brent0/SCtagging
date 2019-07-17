@@ -1,20 +1,316 @@
-
+#' @title  sample_ent
+#' @description  Function that enters release data entered in the html app 
+#' @import jsonlite stringr opencpu ROracle DBI
+#' @return message to webpage 
+#' @export
+sample_ent <- function(bdata, sdata){
+  
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  #conn = RODBC::odbcConnect(dsn=oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  
+  # Check connection
+  # if (conn == -1){
+  #   return(toJSON("Connection failed"))
+  # }
+  
+  samp = myUrlEncode(sdata)
+  
+  samp = unlist(str_split(samp, "&"))
+  rc1 = ""
+  dat = ""
+  sam = ""
+  ves = ""
+  cfa = ""
+  capt = ""
+  dep = ""
+  com = ""
+  lat = ""
+  lon = ""
+  
+  for(i in 1:length(samp)){
+    if(samp[i] != ""){
+      
+      sa = unlist(str_split(samp[i], "="))
+      
+      
+      
+      if(sa[1] == "radio-choice-1")
+        rc1 = sa[2]
+      if(sa[1] == "date")
+        dat = sa[2]
+      if(sa[1] == "samp")
+        sam = sa[2]
+      if(sa[1] == "ves")
+        ves = sa[2]
+      if(sa[1] == "cfa")
+        cfa = sa[2]
+      if(sa[1] == "capt")
+        capt = sa[2]
+      if(sa[1] == "dep")
+        dep = sa[2]
+      if(sa[1] == "com")
+        com = sa[2]
+      if(sa[1] == "lat")
+        lat = sa[2]
+      if(sa[1] == "lon")
+        lon = sa[2]
+      
+      
+    }
+    
+  }
+  
+  
+  lat = str_replace(lat, "N","")
+  lon = str_replace(lon, "W","")
+  
+  
+  rlat = as.character(conpos(lat))
+  rlon = as.character((conpos(lon)*-1))
+  
+  
+  df = unlist(str_split(dat, "/"))
+  
+  year = df[3]
+  mon = df[1]
+  day = df[2]
+  
+  
+  
+  dat = paste(day, mon, year, sep = "/")
+  
+  
+  
+  sta = ""
+  res = ""
+  samp = ""
+  sampsql = ""
+  out = ""
+  wrisamp = FALSE
+  writrip = FALSE
+  # //////////////////////////////////////////
+  #   //Check if sample num exists, if so get sample num
+  # // else get num row of sample
+  # 
+  # 
+  
+  
+  sql = paste("SELECT TRIP_ID from SCT_TRIP where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND TECHNICIAN = '",sam,"'", sep = "")
+  
+  
+  result <- ROracle::dbSendQuery(con, sql) 
+  result <- ROracle::fetch(result)
+  #result = RODBC::sqlQuery(conn, sql)
+  exis = nrow(result)
+  
+  rowid = ""
+  
+  if (exis > 0){
+    res = result[,1]
+  }
+  
+  
+  
+  if (exis == 0) {            
+    
+    sql = "select TRIP_ID from SCT_TRIP"
+    result <- ROracle::dbSendQuery(con, sql) 
+    result <- ROracle::fetch(result)
+    #result = RODBC::sqlQuery(conn, sql)
+    res = nrow(result) + 300 
+    
+    
+    if(cfa == "xxxx") sta = '4X'
+    if(cfa == "nens") sta = 'NENS'
+    if(cfa == "23") sta = 'SENS'
+    if(cfa == "24") sta = 'SENS'  
+    if(cfa == "gulf") sta = 'GULF'  				 
+    suba = ""
+    if(sta == "NENS") suba =  '(all)(ens)(nens)(nens_gulf)(allandgulf)'
+    if(sta == "SENS"){
+      if(cfa == "23")
+        suba =  '(cfa23)(all)(ens)(sens)(allandgulf)(cfa23zoom)(cfa24zoom)(all.holes)'
+      if(cfa == "24")
+        suba =  '(cfa24)(all)(ens)(sens)(allandgulf)(cfa24zoom)(cfa24zoom)(all.holes)'
+    }
+    if(sta == "4X") suba =  '(all)(ens)(cfa4x)(allandgulf)';
+    if(sta == "GULF") suba =  '(allandgulf)';
+    
+    
+    reldat = lubridate::dmy(dat)
+    
+    tripsql = paste("INSERT INTO SCT_TRIP (TRIP_ID, TECHNICIAN, VESSEL, CFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",SQLsafty(ves),"' , '",cfa,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
+    #sql = paste("INSERT INTO SCT_TRIP (TRIP_ID, TECHNICIAN, VESSEL, CFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",SQLsafty(ves),"' , '",cfa,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , ",reldat,";", sep = "")
+    
+    writrip = T
+    
+    #result <- ROracle::fetch(result)
+    #result = RODBC::sqlQuery(conn, sql)
+    
+    
+    
+    #   fwrite($myfile, $sql);
+    
+    
+  }
+  
+  
+  
+  sql = paste("SELECT SAMPLE_ID FROM SCT_SAMPLE where TRIP = '",res,"' AND LAT_DD_DDDD = '",rlat,"' AND LONG_DD_DDDD = '",rlon,"'", sep = "")
+  
+  result <- ROracle::dbSendQuery(con, sql) 
+  result <- ROracle::fetch(result)
+  #result = RODBC::sqlQuery(conn, sql)
+  res2 = nrow(result) 
+  
+  if (res2 > 0){
+    samp = result[,1]
+  }
+  if (res2 == 0) {   
+    sql = "select SAMPLE_ID from SCT_SAMPLE"
+    result <- ROracle::dbSendQuery(con, sql) 
+    result <- ROracle::fetch(result)
+    #result = RODBC::sqlQuery(conn, sql)
+    samp = as.character(nrow(result) + 3500) 
+    
+    sampsql = paste("INSERT INTO SCT_SAMPLE VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",SQLsafty(com),"')", sep = "")
+    wrisamp = TRUE;
+    
+  }
+  
+  
+  
+  
+  dd = as.data.frame(fromJSON(bdata)[2:nrow(fromJSON(bdata)),])
+  names(dd) = fromJSON(bdata)[1,]
+  
+  
+  # $i = 0;
+  # $b = "";
+  writedata = TRUE
+  for(i in 1:nrow(dd)){
+    if(i > 0){
+      if(!is.na(dd$`Tag Num`[i])){
+        
+        
+        sql = paste("SELECT TAG_ID FROM SCT_BIO where TAG_ID = '", dd$`Tag Num`[i],"'", sep = "")
+        
+        result <- ROracle::dbSendQuery(con, sql) 
+        result <- ROracle::fetch(result)
+        #result = RODBC::sqlQuery(conn, sql)
+        ntn = nrow(result) 
+        if(ntn > 0) {
+          out = paste(out, "\nCrab with tag " , dd$`Tag Num`[i], " has already been added!! ", sep = "")
+          writedata = FALSE;
+          
+        } 
+        
+      }
+    }
+  }		
+  
+  
+  
+  if(writedata){
+    for(i in 1:nrow(dd)){
+      if(i > 0){
+        if(!is.na(dd$`Tag Num`[i])){
+          if(is.null(dd$`Durometer`[i])) dd$`Durometer`[i] = NA
+          sql = paste("INSERT INTO SCT_BIO VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$`Claw`[i],"','",dd$`Shell Cond`[i],"','",dd$`Durometer`[i],"')", sep = "")
+          result <- ROracle::dbSendQuery(con, sql) 
+          # result <- ROracle::fetch(result)
+          #result = RODBC::sqlQuery(conn, sql)
+          
+          #   fwrite($myfile, $sql);
+          #if (length(result) == 0){
+          if(dbGetInfo(result, what = "rowsAffected") > 0){
+            
+            out =  paste(out, "\nCrab with  tag " , dd$`Tag Num`[i], " successfully added", sep = "")
+          }
+          else{
+            out =  paste(out,"\nError: ",  result)
+            return(out)
+            die()
+          }
+          
+        }
+      }
+      
+    }
+    if(wrisamp){
+      
+      rs = ROracle::dbSendQuery(con, sampsql) 
+      #result <- ROracle::fetch(result)
+      #result = RODBC::sqlQuery(conn, sampsql)
+      
+      
+      #if (length(result) == 0){
+      if(dbGetInfo(rs, what = "rowsAffected") == 1){
+        out = paste(out,"\nSample from trip ",res, " with pos ",lat, " " ,lon, " successfully added", sep = "")
+      }
+      else{
+        out =  paste(out, "\nError: " ,sampsql , "\n" , rs, "\n", sep = "")
+        return(out)
+        die()
+      }
+      
+    }
+    if(writrip){
+      
+      result2 <- ROracle::dbSendQuery(con, tripsql) 
+      
+      if(dbGetInfo(result2, what = "rowsAffected") == 1){
+        #if (length(result) == 0){
+        out =  paste(out, "\nNew Trip ", res, " Successfully Added.")
+      }
+      else{
+        out =  paste(out,"\nError: ",  result2)
+        return(out)
+        die()
+      }
+    }
+    ROracle::dbCommit(con)
+  }
+  
+  out = paste(out,"\n\n", sep = "")
+  
+  ROracle::dbDisconnect(con)
+  #RODBC::odbcClose(conn)
+  return(out)
+  
+}
 
 
 
 #' @title  ret_ent
 #' @description  Function that enters returndata entered in the html app 
-#' @import RODBC jsonlite stringr sp rgeos
+#' @import ROracle DBI jsonlite stringr sp rgeos
 #' @return message to webpage
 #' @export
 ret_ent <- function(ddata){
   
-  
-  conn = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-  # Check connection
-  if (conn == -1){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    conn <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
     return(toJSON("Connection failed"))
-  }
+  }, finally = {
+  })
+  
+ # conn = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  # Check connection
+#  if (conn == -1){
+  #  return(toJSON("Connection failed"))
+ # }
   out = ""
   
   ent = myUrlEncode(ddata)
@@ -166,15 +462,16 @@ ret_ent <- function(ddata){
                 RELCODE, COMMENTS, CAPTAIN, VESSEL, YEAR, STATSAREA, CARAPACE_COND, REWARDED, SUBAREA) 
                 values ('", tid,"', to_date('", dat,"', 'dd/mm/yyyy'),'", SQLsafty(per),"','NA','", lat,"','", lon,"','", rlat,"','", rlon,"','", depth,
                 "','", ret,"','", SQLsafty(com),"','", SQLsafty(per),"','", SQLsafty(ves),"','", year,"','", statsarea,"','", shellcond,
-                "','N','", subarea, "');", sep = "")
+                "','N','", subarea, "')", sep = "")
   
   que1 = paste("select count(NAME) num from SCT_PEOPLE", gstring, "  where NAME = '", per,"'", sep = "")
-  toda2 = paste("insert into SCT_PEOPLE", gstring, "  (NAME, CIVIC, TOWN, PROV, POST, EMAIL, PHO1, PHO2, COUNTRY) values ('", SQLsafty(per),"','", SQLsafty(add),"','", SQLsafty(loc),"','", SQLsafty(pro),"','", poc,"','", SQLsafty(ema),"','", SQLsafty(phoa),"','", SQLsafty(phob), "','", SQLsafty(cou), "');", sep = "")
+  toda2 = paste("insert into SCT_PEOPLE", gstring, "  (NAME, CIVIC, TOWN, PROV, POST, EMAIL, PHO1, PHO2, COUNTRY) values ('", SQLsafty(per),"','", SQLsafty(add),"','", SQLsafty(loc),"','", SQLsafty(pro),"','", poc,"','", SQLsafty(ema),"','", SQLsafty(phoa),"','", SQLsafty(phob), "','", SQLsafty(cou), "')", sep = "")
   toda4 = paste("update SCT_PEOPLE", gstring, "  set NAME = '", SQLsafty(per),"', CIVIC = '", SQLsafty(add),"', TOWN = '", SQLsafty(loc),"', PROV = '", SQLsafty(pro),"', POST = '", poc,"', EMAIL = '", SQLsafty(ema),"', PHO1 = '", SQLsafty(phoa),
-                "', PHO2 = '", SQLsafty(phob),"', COUNTRY = '", SQLsafty(cou),"' where NAME = '", per, "';", sep = "")
+                "', PHO2 = '", SQLsafty(phob),"', COUNTRY = '", SQLsafty(cou),"' where NAME = '", per, "'", sep = "")
   
-  result = RODBC::sqlQuery(conn, que1)
-  
+  #result = RODBC::sqlQuery(conn, que1)
+  result <- ROracle::dbSendQuery(conn, que1) 
+  result <- ROracle::fetch(result)
   
   toda = toda2
   out = paste("New person added to SCT_PEOPLE", gstring, "  table: ", per, sep = "")
@@ -185,15 +482,38 @@ ret_ent <- function(ddata){
   
   out = paste(out, "\n", sep = "")
   
-  result = RODBC::sqlQuery(conn, toda)
+  #result = RODBC::sqlQuery(conn, toda)
+  rs = ROracle::dbSendQuery(conn, toda) 
+
+  if(dbGetInfo(rs, what = "rowsAffected") == 1){
+    
+  }
+  else{
+    out =  paste(out, "\nError: " ,toda , "\n" , rs, "\n", sep = "")
+    return(out)
+    die()
+  }
   
-  result = RODBC::sqlQuery(conn, toda1)
-  out = paste(out, "New entry added to SCT_CAPTURE", gstring, "  with TAG_ID: ", tid, sep = "")
+  #result = RODBC::sqlQuery(conn, toda1)
+  result <- ROracle::dbSendQuery(conn, toda1) 
+  
+  if(dbGetInfo(result, what = "rowsAffected") == 1){
+    out = paste(out, "New entry added to SCT_CAPTURE", gstring, "  with TAG_ID: ", tid, sep = "")
+  }
+  else{
+    out =  paste(out, "\nError: " ,toda1 , "\n" , result, "\n", sep = "")
+    return(out)
+    die()
+  }
+  
   out = paste(out, "\n", sep = "")
   out = paste(out, "\n", sep = "")
   
-  odbcClose(conn)
-  return(out)
+  
+ROracle::dbCommit(conn)
+ROracle::dbDisconnect(conn)
+#RODBC::odbcClose(conn)
+return(out)
 }
 
 
@@ -214,7 +534,7 @@ SC_Stats_Sample <- function(area = "", years = "", region = "SoctianShelf"){
 
 #' @title  SC_Stats_Capture
 #' @description  Function generates stats for display on webpage 
-#' @import RODBC jsonlite
+#' @import jsonlite
 #' @return message to webpage
 #' @export
 SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
@@ -234,7 +554,7 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
     }else{
       
       mess = tagReturned_Year(are, years)
-      return(mess)
+     
     }
 
     if(mess == FALSE){
@@ -287,9 +607,33 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
     
 }
 
+#' @title  SC_Stats_Capture_Table
+#' @description  Function generates stats in Table format for display on webpage 
+#' @import jsonlite xtable
+#' @return message to webpage
+#' @export
+SC_Stats_Capture_Table = function(are= "", years = "", region = "SoctianShelf"){
+  y = unlist(strsplit(years, ","))
+  are = as.character(are)
+  y = as.character(y)
+  
+  dx = data.frame(row.names = F)
+  for(i in 1:length(y)){
+    mess = tagApplied(are, y[i])
+    mess2 = tagReturned_Applied(are, y[i])
+    dx = rbind(dx, cbind(y[i], mess, mess2$ret, mess2$retuni, mess2$day, mess2$mov, mess2$lday, mess2$lmov, mess2$spe))
+    }
+    names(dx) = c("Year", "NumReleased", "NumReturned", "NumUniqueReturned", "AveDay2Capture", "AveDist2Capture", "MaxDay2Capture", "MaxDist2Capture", "km/month")
+    str = print(xtable(dx), type = "html", row.names = F)
+    
+    return(str)
+}
+
+
+
 #' @title  tagApplied
 #' @description  Helper function to generate stats 
-#' @import RODBC stringr
+#' @import ROracle stringr
 #' @return stats message
 #' @export
 tagApplied = function(are, years, rm.gulf = T){
@@ -313,9 +657,17 @@ tagApplied = function(are, years, rm.gulf = T){
   # dbDisconnect(con) 
   # closeportSC(SCtunnel)
   # 
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+
   
-  
-  con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+ # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   da = NULL
   
   
@@ -329,11 +681,15 @@ tagApplied = function(are, years, rm.gulf = T){
                 ON SCT_BIO.SAMPLE_NUM = SCT_SAMPLE.SAMPLE_ID
                 INNER JOIN SCT_TRIP
                 ON SCT_TRIP.TRIP_ID = SCT_SAMPLE.TRIP
-                WHERE (SCT_TRIP.YEAR = '", yea, "');", sep="")
+                WHERE (SCT_TRIP.YEAR = '", yea, "')", sep="")
   
-  da = sqlQuery(con, query )
-  odbcClose(con)
+  result <- ROracle::dbSendQuery(con, query) 
+  da <- ROracle::fetch(result)
   
+  
+  #da = sqlQuery(con, query )
+  #odbcClose(con)
+  ROracle::dbDisconnect(con)
   
   
   da$sample_id = NULL
@@ -371,7 +727,7 @@ tagApplied = function(are, years, rm.gulf = T){
 
   #' @title  tagReturned_Year
   #' @description  Helper function to generate stats 
-  #' @import RODBC stringr
+  #' @import ROracle stringr
   #' @return stats message
   #' @export
 tagReturned_Year = function(are, years, region = "SoctianShelf"){
@@ -386,9 +742,25 @@ tagReturned_Year = function(are, years, region = "SoctianShelf"){
             SCT_CAPTURE.YEAR
             FROM SCT_CAPTURE
             WHERE (SCT_CAPTURE.YEAR = '", yea, "')", sep="")
-    con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    res = sqlQuery(con, toda)
-    odbcClose(con)
+   
+    
+    tryCatch({
+      drv <- DBI::dbDriver("Oracle")
+      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+    }, warning = function(w) {
+    }, error = function(e) {
+      return(toJSON("Connection failed"))
+    }, finally = {
+    })
+    
+    result <- ROracle::dbSendQuery(con, toda) 
+    res <- ROracle::fetch(result)
+    
+    ROracle::dbDisconnect(con)
+    
+    #con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+    #res = sqlQuery(con, toda)
+    #odbcClose(con)
  
     x = nrow(res)
 
@@ -413,7 +785,7 @@ tagReturned_Year = function(are, years, region = "SoctianShelf"){
   
   #' @title  tagReturned_Applied
   #' @description  Helper function to generate stats 
-  #' @import RODBC lubridate
+  #' @import lubridate
   #' @return stats message 
   #' @export
 tagReturned_Applied = function(are, years, rm.gulf = T){
@@ -433,7 +805,10 @@ tagReturned_Applied = function(are, years, rm.gulf = T){
     x = get.path()
 
     names(x) = c("PID", "CID", "capdate", "kms")
-    x$capdate = dmy(x$capdate)
+
+    y$capdate = format(y$capdate, "%d/%m/%Y")
+    y$sampdat = format(y$sampdat, "%d/%m/%Y")
+   # y$capdate = format(y$capdate, format = "%d/%m/%Y")
     da = merge(x, y, by = c("PID","capdate"))
    
     ##REMOVE YEARS
@@ -493,7 +868,7 @@ tagReturned_Applied = function(are, years, rm.gulf = T){
     
     #dates = as.character(mov$D)
   #  mov$D = as.POSIXct(as.numeric(dates), origin = '1970-01-01')
-     mov$D = ymd(mov$D)
+     mov$D = dmy(mov$D)
    if(nrow(mov) == 0)return(z)
     x = split(mov, mov$PID)
     ndays = NULL
@@ -545,17 +920,21 @@ tagReturned_Applied = function(are, years, rm.gulf = T){
     
     z$mov = mean(daysince$nkm)
     z$lmov = max(daysince$nkm)
-   pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("distances", are, years,".pdf", sep = "_")))
-   pdf(file.path(paste("distances", are, years,".pdf", sep = "_")))
-   
-   hist(daysince$nkm,breaks=100, col="red",main="Distances Travelled",xlab="Distance(km)")
-   dev.off()
-   #pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("days.pdf", are, years,".pdf", sep = "_")))
-   #hist(daysince$ndays,breaks=100, col="red",main="Days To Last Known Capture",xlab="Time(days)")
-   #dev.off()
-   #pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("tofirstdays.pdf", are, years,".pdf", sep = "_")))
-  # hist(tofirst,breaks=100, col="red", main="Days To First Capture",xlab="Time(days)")
-   #dev.off()
+    if(dir.exists(file.path(data_root, "bio.snowcrab", "data", "tagging"))){
+      pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("distances", are, years,".pdf", sep = "_")))
+      hist(daysince$nkm,breaks=100, col="red",main="Distances Travelled",xlab="Distance(km)")
+      dev.off()
+      # pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("days.pdf", are, years,".pdf", sep = "_")))
+      # hist(daysince$ndays,breaks=100, col="red",main="Days To Last Known Capture",xlab="Time(days)")
+      # dev.off()
+      # pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("tofirstdays.pdf", are, years,".pdf", sep = "_")))
+      # hist(tofirst,breaks=100, col="red", main="Days To First Capture",xlab="Time(days)")
+      # dev.off()
+    }
+    else{
+      warning("Not creating plots because no 'data_root' directory set up!")
+    }
+
     z$day = mean(daysince$ndays)
     z$lday = max(daysince$ndays)
     
@@ -588,8 +967,7 @@ alldata = function(are, years){
     write.csv(da, "outcc.csv")
   }
   
-  
-  addPaths <- function(dx){
+addPaths <- function(dx){
     dx$plat = NA
     dx$plon = NA
     dx$km = NA
@@ -613,295 +991,7 @@ alldata = function(are, years){
     return(dx)
   }
   
-  #' @title  sample_ent
-  #' @description  Function that enters release data entered in the html app 
-  #' @import jsonlite stringr opencpu ROracle DBI
-  #' @return message to webpage 
-  #' @export
-  sample_ent <- function(bdata, sdata){
  
-    tryCatch({
-       drv <- DBI::dbDriver("Oracle")
-       con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    }, warning = function(w) {
-    }, error = function(e) {
-      return(toJSON("Connection failed"))
-    }, finally = {
-    })
-    
-    #conn = RODBC::odbcConnect(dsn=oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-
-     # Check connection
-    # if (conn == -1){
-    #   return(toJSON("Connection failed"))
-    # }
-    
-    samp = myUrlEncode(sdata)
-    
-    samp = unlist(str_split(samp, "&"))
-    rc1 = ""
-    dat = ""
-    sam = ""
-    ves = ""
-    cfa = ""
-    capt = ""
-    dep = ""
-    com = ""
-    lat = ""
-    lon = ""
-    
-    for(i in 1:length(samp)){
-      if(samp[i] != ""){
-        
-        sa = unlist(str_split(samp[i], "="))
-        
-        
-        
-        if(sa[1] == "radio-choice-1")
-          rc1 = sa[2]
-        if(sa[1] == "date")
-          dat = sa[2]
-        if(sa[1] == "samp")
-          sam = sa[2]
-        if(sa[1] == "ves")
-          ves = sa[2]
-        if(sa[1] == "cfa")
-          cfa = sa[2]
-        if(sa[1] == "capt")
-          capt = sa[2]
-        if(sa[1] == "dep")
-          dep = sa[2]
-        if(sa[1] == "com")
-          com = sa[2]
-        if(sa[1] == "lat")
-          lat = sa[2]
-        if(sa[1] == "lon")
-          lon = sa[2]
-        
-        
-      }
-      
-    }
-    
-    
-    lat = str_replace(lat, "N","")
-    lon = str_replace(lon, "W","")
-    
-    
-    rlat = as.character(conpos(lat))
-    rlon = as.character((conpos(lon)*-1))
-    
-    
-    df = unlist(str_split(dat, "/"))
-    
-    year = df[3]
-    mon = df[1]
-    day = df[2]
-    
-    
-    
-    dat = paste(day, mon, year, sep = "/")
-    
-    
-    
-    sta = ""
-    res = ""
-    samp = ""
-    sampsql = ""
-    out = ""
-    wrisamp = FALSE
-    writrip = FALSE
-    # //////////////////////////////////////////
-    #   //Check if sample num exists, if so get sample num
-    # // else get num row of sample
-    # 
-    # 
-    
-    
-    sql = paste("SELECT TRIP_ID from SCT_TRIP where RELEASE_DATE = to_date('", dat,"', 'dd/mm/yyyy') AND TECHNICIAN = '",sam,"'", sep = "")
-    
-    
-    result <- ROracle::dbSendQuery(con, sql) 
-    result <- ROracle::fetch(result)
-    #result = RODBC::sqlQuery(conn, sql)
-    exis = nrow(result)
-    
-    rowid = ""
-    
-    if (exis > 0){
-      res = result[,1]
-    }
-    
-    
-    
-    if (exis == 0) {            
-      
-      sql = "select TRIP_ID from SCT_TRIP"
-      result <- ROracle::dbSendQuery(con, sql) 
-      result <- ROracle::fetch(result)
-      #result = RODBC::sqlQuery(conn, sql)
-      res = nrow(result) + 300 
-      
-      
-      if(cfa == "xxxx") sta = '4X'
-      if(cfa == "nens") sta = 'NENS'
-      if(cfa == "23") sta = 'SENS'
-      if(cfa == "24") sta = 'SENS'  
-      if(cfa == "gulf") sta = 'GULF'  				 
-      suba = ""
-      if(sta == "NENS") suba =  '(all)(ens)(nens)(nens_gulf)(allandgulf)'
-      if(sta == "SENS"){
-        if(cfa == "23")
-          suba =  '(cfa23)(all)(ens)(sens)(allandgulf)(cfa23zoom)(cfa24zoom)(all.holes)'
-        if(cfa == "24")
-          suba =  '(cfa24)(all)(ens)(sens)(allandgulf)(cfa24zoom)(cfa24zoom)(all.holes)'
-      }
-      if(sta == "4X") suba =  '(all)(ens)(cfa4x)(allandgulf)';
-      if(sta == "GULF") suba =  '(allandgulf)';
-      
-      
-      reldat = lubridate::dmy(dat)
-      
-      tripsql = paste("INSERT INTO SCT_TRIP (TRIP_ID, TECHNICIAN, VESSEL, CFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",SQLsafty(ves),"' , '",cfa,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , to_date('", dat,"', 'dd/mm/yyyy'))", sep = "")
-      #sql = paste("INSERT INTO SCT_TRIP (TRIP_ID, TECHNICIAN, VESSEL, CFA, YEAR, STATSAREA, REPORTED, CAPTAIN, SUBAREA, RELEASE_DATE) VALUES( '",res,"' , '",sam,"' , '",SQLsafty(ves),"' , '",cfa,"' , '",year,"' , '",sta ,"' , 0 , '",SQLsafty(capt) ,"' , '",suba,"' , ",reldat,";", sep = "")
-      
-  writrip = T
-       
-      #result <- ROracle::fetch(result)
-      #result = RODBC::sqlQuery(conn, sql)
-     
-      
-      
-      #   fwrite($myfile, $sql);
-    
-      
-    }
-    
-    
-    
-    sql = paste("SELECT SAMPLE_ID FROM SCT_SAMPLE where TRIP = '",res,"' AND LAT_DD_DDDD = '",rlat,"' AND LONG_DD_DDDD = '",rlon,"'", sep = "")
-
-    result <- ROracle::dbSendQuery(con, sql) 
-    result <- ROracle::fetch(result)
-    #result = RODBC::sqlQuery(conn, sql)
-    res2 = nrow(result) 
-
-    if (res2 > 0){
-      samp = result[,1]
-    }
-    if (res2 == 0) {   
-      sql = "select SAMPLE_ID from SCT_SAMPLE"
-      result <- ROracle::dbSendQuery(con, sql) 
-      result <- ROracle::fetch(result)
-      #result = RODBC::sqlQuery(conn, sql)
-      samp = as.character(nrow(result) + 3500) 
-      
-      sampsql = paste("INSERT INTO SCT_SAMPLE VALUES( '",samp,"' , '",res,"' , '",lat,"' , '",lon,"'  ,  '",rlat,"' , '",rlon,"' , '",dep,"' , '",SQLsafty(com),"')", sep = "")
-      wrisamp = TRUE;
-      
-    }
-    
-    
-    
-    
-    dd = as.data.frame(fromJSON(bdata)[2:nrow(fromJSON(bdata)),])
-    names(dd) = fromJSON(bdata)[1,]
-    
-    
-    # $i = 0;
-    # $b = "";
-    writedata = TRUE
-    for(i in 1:nrow(dd)){
-      if(i > 0){
-        if(!is.na(dd$`Tag Num`[i])){
-          
-          
-          sql = paste("SELECT TAG_ID FROM SCT_BIO where TAG_ID = '", dd$`Tag Num`[i],"'", sep = "")
-         
-          result <- ROracle::dbSendQuery(con, sql) 
-          result <- ROracle::fetch(result)
-          #result = RODBC::sqlQuery(conn, sql)
-          ntn = nrow(result) 
-          if(ntn > 0) {
-            out = paste(out, "\nCrab with tag " , dd$`Tag Num`[i], " has already been added!! ", sep = "")
-            writedata = FALSE;
-            
-          } 
-          
-        }
-      }
-    }		
-    
-  
-    
-    if(writedata){
-      for(i in 1:nrow(dd)){
-        if(i > 0){
-          if(!is.na(dd$`Tag Num`[i])){
-            if(is.null(dd$`Durometer`[i])) dd$`Durometer`[i] = NA
-            sql = paste("INSERT INTO SCT_BIO VALUES ('",samp,"', '",dd$`Tag Num`[i],"', '",dd$`Carapace`[i],"', '",dd$`Claw`[i],"','",dd$`Shell Cond`[i],"','",dd$`Durometer`[i],"')", sep = "")
-            result <- ROracle::dbSendQuery(con, sql) 
-           # result <- ROracle::fetch(result)
-             #result = RODBC::sqlQuery(conn, sql)
-        
-            #   fwrite($myfile, $sql);
-            #if (length(result) == 0){
-              if(dbGetInfo(result, what = "rowsAffected") > 0){
-              
-              out =  paste(out, "\nCrab with  tag " , dd$`Tag Num`[i], " successfully added", sep = "")
-            }
-            else{
-              out =  paste(out,"\nError: ",  result)
-              return(out)
-              die()
-            }
-            
-          }
-        }
-        
-      }
-      if(wrisamp){
-     
-        rs = ROracle::dbSendQuery(con, sampsql) 
-       #result <- ROracle::fetch(result)
-        #result = RODBC::sqlQuery(conn, sampsql)
-
-        
-        #if (length(result) == 0){
-        if(dbGetInfo(rs, what = "rowsAffected") == 1){
-          out = paste(out,"\nSample from trip ",res, " with pos ",lat, " " ,lon, " successfully added", sep = "")
-        }
-        else{
-          out =  paste(out, "\nError: " ,sampsql , "\n" , rs, "\n", sep = "")
-          return(out)
-          die()
-        }
-        
-      }
-      if(writrip){
-      
-        result2 <- ROracle::dbSendQuery(con, tripsql) 
-       
-        if(dbGetInfo(result2, what = "rowsAffected") == 1){
-        #if (length(result) == 0){
-          out =  paste(out, "\nNew Trip ", res, " Successfully Added.")
-        }
-        else{
-          out =  paste(out,"\nError: ",  result2)
-          return(out)
-          die()
-        }
-      }
-      ROracle::dbCommit(con)
-    }
-    
-    out = paste(out,"\n\n", sep = "")
-  
-    ROracle::dbDisconnect(con)
-    #RODBC::odbcClose(conn)
-    return(out)
-    
-  }
   
   #' @title  THE MAIN GUI FUNCTION!
   #' @description  Opens web page of options for data entry
@@ -913,24 +1003,31 @@ alldata = function(are, years){
   }
   
   
-  #' @title  SC_samp_Ent
-  #' @description  Enter data to sample table
-  #' @import RMySQL RODBC
-  SC_samp_Ent <- function(tid = NA, lat = NA, lon = NA, dlat = NA, dlon = NA, fat = NA, com = NA){
-    sid = as.integer(SCT_nrows("SCT_SAMPLE") + 1)
-    # Exists sample?
-  }
-  
+ 
   #' @title  SCT_nrows
   #' @description  Get the number of rows from specified table
   #' @param table The name of the table from which to determine the current number of rows
-  #' @import RODBC
+  #' @import ROracle
   SCT_nrows <- function(table = ""){
     
-    con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+    tryCatch({
+      drv <- DBI::dbDriver("Oracle")
+      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+    }, warning = function(w) {
+    }, error = function(e) {
+      return(toJSON("Connection failed"))
+    }, finally = {
+    })
     nrows = NULL
-    nrows = sqlQuery(con, paste("select count(*) from ", table, sep = "") )
-    odbcClose(con)
+    result <- ROracle::dbSendQuery(con, paste("select count(*) from ", table, sep = "")) 
+    nrows <- ROracle::fetch(result)
+    
+    #con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+    
+    #nrows = sqlQuery(con, paste("select count(*) from ", table, sep = "") )
+    #odbcClose(con)
+    ROracle::dbDisconnect(con)
+    
     return(nrows)
   }
   
@@ -979,58 +1076,126 @@ alldata = function(are, years){
   
   #' @title  auto_availableP
   #' @description Function that help autopopulate people in the html form
-  #' @import RODBC jsonlite
+  #' @import ROracle DBI jsonlite
   #' @export
   autoavailableP = function(options = "", region = ""){
-    con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+    tryCatch({
+      drv <- DBI::dbDriver("Oracle")
+      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+    }, warning = function(w) {
+    }, error = function(e) {
+      return(toJSON("Connection failed"))
+    }, finally = {
+    })
+    
+    
+    # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
     res = ""
     if(region == "ss"){
-      res = sqlQuery(con, "select NAME from SCT_PEOPLE" )
-    }
+      #res = sqlQuery(con, "select NAME from SCT_PEOPLE" )
+      result <- ROracle::dbSendQuery(con, "select NAME from SCT_PEOPLE") 
+
+      
+      }
     if(region == "g"){
-      res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
-    }
+      #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
+      result <- ROracle::dbSendQuery(con, "select NAME from SCT_PEOPLE_GULF") 
+          }
     
+    result <- ROracle::fetch(result)
     
-    odbcClose(con)
+    ROracle::dbDisconnect(con)
     
-    return(toJSON(res))
+    #odbcClose(con)
+    
+    return(toJSON(result))
     
   }
   #' @title  auto_availableT
   #' @description Function that help autopopulate Tag id in the html form
-  #' @import RODBC jsonlite
+  #' @import ROracle jsonlite
   #' @export
   autoavailableT = function(region = ""){
+    tryCatch({
+      drv <- DBI::dbDriver("Oracle")
+      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+    }, warning = function(w) {
+    }, error = function(e) {
+      return(toJSON("Connection failed"))
+    }, finally = {
+    })
     
-    con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
     
-    res = ""
+    # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+    result = ""
     if(region == "ss"){
-      res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
+      #res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
+      result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO") 
+      
+      
     }
     if(region == "g"){
-      res = sqlQuery(con, "select TAG_ID from SCT_BIO_GULF" )
+      #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
+      result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO_GULF") 
     }
-    odbcClose(con)
     
-    return(toJSON(res))
+    result <- ROracle::fetch(result)
+    
+    ROracle::dbDisconnect(con)
+    
+    #odbcClose(con)
+    
+    return(toJSON(result))
+    # 
+    # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+    # 
+    # res = ""
+    # if(region == "ss"){
+    #   res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
+    # }
+    # if(region == "g"){
+    #   res = sqlQuery(con, "select TAG_ID from SCT_BIO_GULF" )
+    # }
+    # odbcClose(con)
+    # 
+    # return(toJSON(res))
     
   }
   
   #' @title  autoaddData
   #' @description Function that help autopopulate people in the html form
   #' @param name The persons name from which to obtain current info
-  #' @import RODBC jsonlite
+  #' @import ROracle DBI jsonlite
   #' @export
   autoaddData = function(name = "", region = ""){
+ 
+    tryCatch({
+      drv <- DBI::dbDriver("Oracle")
+      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+    }, warning = function(w) {
+    }, error = function(e) {
+      return(toJSON("Connection failed"))
+    }, finally = {
+    })
+    
+    
     gstring = ""
     if(region == "g") gstring = "_GULF"
-    con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    res = sqlQuery(con, paste("select * from SCT_PEOPLE", gstring,"  where NAME = '", name, "'", sep = "" ))
-    odbcClose(con)
     
-    return(toJSON(res))
+      #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
+      result <- ROracle::dbSendQuery(con, paste("select * from SCT_PEOPLE", gstring,"  where NAME = '", name, "'", sep = "" )) 
+    
+    
+    result <- ROracle::fetch(result)
+    
+    ROracle::dbDisconnect(con)
+    
+    
+    # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+    # res = sqlQuery(con, paste("select * from SCT_PEOPLE", gstring,"  where NAME = '", name, "'", sep = "" ))
+    # odbcClose(con)
+    # 
+    return(toJSON(result))
     
   }
   

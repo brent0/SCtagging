@@ -2016,15 +2016,26 @@ gettableSQL = function(table){
 
 #' @title  get.releases
 #' @description  Return capture data
-#' @import RODBC
+#' @import ROracle DBI
 #' @return dataframe
 #' @export
 get.releases = function(region = "ScotianShelf"){
+  
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    conn <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  
   gstring = ""
   if(region == "Gulf"){
     gstring = "_GULF"
   }
-  con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  #con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   da = NULL
   
   
@@ -2048,13 +2059,13 @@ get.releases = function(region = "ScotianShelf"){
                 ON SCT_SAMPLE", gstring,".TRIP = SCT_TRIP", gstring,".TRIP_ID
                 ORDER BY SCT_TRIP", gstring,".TRIP_ID,
                 SCT_BIO", gstring,".TAG_ID,
-                SCT_TRIP", gstring,".RELEASE_DATE;", sep = "")
+                SCT_TRIP", gstring,".RELEASE_DATE", sep = "")
   
-  # resbio <- ROracle::dbSendQuery(con, query) 
-  # da <- fetch(resbio)
-  da = RODBC::sqlQuery(con, query )
-  # ROracle::dbDisconnect(con)
-  RODBC::odbcClose(con)
+   resbio <- ROracle::dbSendQuery(conn, query) 
+   da <- fetch(resbio)
+  #da = RODBC::sqlQuery(con, query )
+   ROracle::dbDisconnect(con)
+  #RODBC::odbcClose(con)
   # da <- RODBC::fetch(rs, n = -1)   # extract all rows
   #RODBC::dbDisconnect(con) 
   # closeportSC(SCtunnel)
@@ -2069,7 +2080,7 @@ get.releases = function(region = "ScotianShelf"){
 }
 #' @title  get.capturedata
 #' @description  Return capture data
-#' @import RODBC
+#' @import ROracle DBI
 #' @return dataframe
 #' @export
 get.capturedata = function(region = "ScotianShelf"){
@@ -2092,11 +2103,11 @@ get.capturedata = function(region = "ScotianShelf"){
   #                     from trip join sample where sample.trip = trip.trip_id)t2
   #                     ON t1.sample_num = t2.sample_id  
   #                     ORDER BY captain, trip_id, tag_id, t1.date;")
-   #drv <- DBI::dbDriver("Oracle")
- #  con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  drv <- DBI::dbDriver("Oracle")
+  con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
 
   
-  con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  #con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   da = NULL
   
   
@@ -2126,16 +2137,18 @@ get.capturedata = function(region = "ScotianShelf"){
                 ORDER BY SCT_TRIP", gstring,".CAPTAIN,
                 SCT_TRIP", gstring,".TRIP_ID,
                 SCT_BIO", gstring,".TAG_ID,
-                SCT_CAPTURE", gstring,".CAPTURE_DATE;", sep = "")
+                SCT_CAPTURE", gstring,".CAPTURE_DATE", sep = "")
   
-  # resbio <- ROracle::dbSendQuery(con, query) 
-  # da <- fetch(resbio)
-  da = RODBC::sqlQuery(con, query )
-  # ROracle::dbDisconnect(con)
-  RODBC::odbcClose(con)
+   resbio <- ROracle::dbSendQuery(con, query) 
+   da <- fetch(resbio)
+  #da = RODBC::sqlQuery(con, query )
+   ROracle::dbDisconnect(con)
+  #RODBC::odbcClose(con)
 # da <- RODBC::fetch(rs, n = -1)   # extract all rows
  #RODBC::dbDisconnect(con) 
   # closeportSC(SCtunnel)
+   da$CAPTURE_DATE = as.Date(da$CAPTURE_DATE)
+   da$RELEASE_DATE = as.Date(da$RELEASE_DATE)
   da = unique(da)
   da$SAMPLE_NUM = NULL
   da$TRIP_ID = NULL
@@ -2165,7 +2178,7 @@ get.capturedata = function(region = "ScotianShelf"){
 
 #' @title  get.pathdata.tid
 #' @description  Return calculated paths by supplied TID
-#' @import RODBC
+#' @import ROracle
 #' @return dataframe
 #' @export
 get.pathdata.tid = function(region = "ScotianShelf", tid = ""){
@@ -2173,16 +2186,24 @@ get.pathdata.tid = function(region = "ScotianShelf", tid = ""){
   if(region == "Gulf"){
     gstring = "_GULF"
   }
-  con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  
+  drv <- DBI::dbDriver("Oracle")
+  con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  
+  #con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   da = NULL
   
   
-  query = paste("SELECT * FROM SCT_PATHS", gstring, " where SCT_PATHS", gstring,".TID = '", tid, "';", sep = "")
+  query = paste("SELECT * FROM SCT_PATHS", gstring, " where SCT_PATHS", gstring,".TID = '", tid, "'", sep = "")
   
-  da = RODBC::sqlQuery(con, query )
+  resbio <- ROracle::dbSendQuery(con, query) 
+  da <- ROracle::fetch(resbio)
+  
+  #da = RODBC::sqlQuery(con, query )
   da = da[order(da$CID, da$POS),]
-  RODBC::odbcClose(con)
- 
+  #RODBC::odbcClose(con)
+  ROracle::dbDisconnect(con)
+  
   
   return(da)
   
@@ -2581,7 +2602,7 @@ absolutely.in.area = function(area, abslon, abslat){
 
 #' @title degminsec2decdeg
 #' @description  Function that converts degree minutes decimal seconds to decimal degrees 
-#' @param ddmmss.ss
+#' @param ddmmss.ss The coordinate to convert
 #' @return numeric converted coordinate
 #' @import stringr
 #' @export
