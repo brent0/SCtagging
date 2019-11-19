@@ -736,7 +736,7 @@ plotReleases = function(){
   rel$ANIMAL_ID = toupper(rel$ANIMAL_ID)
   return(rel)
 }
-plotaccousticpaths = function(x){
+plotaccousticpaths = function(x, rel){
   statsframe = NULL
   mykml$addFolder(fid = "paths", name = "paths")
   raster.path = file.path("E:", "maps", "depthraster2.tif") #meters
@@ -870,7 +870,7 @@ plotaccousticpaths = function(x){
 generatekml = function(x){
 
 rel = plotReleases()
-plotReceivers()
+#plotReceivers()
 
 
 
@@ -1239,7 +1239,7 @@ for(i in 1:nrow(remove)){
 
 
 
-sf = plotaccousticpaths(dacpy)
+sf = plotaccousticpaths(dacpy, rel)
 
 
 sft = sf
@@ -1268,7 +1268,7 @@ library(colorRamps)
 
 ggplot2.scatterplot(data=sfsum, backgroundColor="white", size=5, mainTitle="Kilometers vs. Days by Release Area", xName='Days',yName='Km', groupName="relyear", faceting=TRUE, facetingVarNames="relarea")
 
-#mykml$preview()
+mykml$preview()
 
 
 mykml$writekml(file.path( "E:", "OTN", "otn.kml" ))

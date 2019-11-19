@@ -4,7 +4,7 @@
 \alias{plottags}
 \title{plottags}
 \usage{
-plottags(are, years, xlim, ylim)
+plottags(are, years)
 }
 \description{
 Function that creates movement charts

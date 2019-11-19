@@ -2,8 +2,8 @@
 
 #' @title  plottags
 #' @description  Function that creates movement charts
-#' @import RODBC PBSmapping
-plottags = function(are, years, xlim, ylim){
+#' @import stringr PBSmapping
+plottags = function(are, years){
     svg(filename = paste("output/tagplots/outchart_", are, "_", years[1], "-", years[length(years)], ".svg", sep = ""), width = 9, height = 9)
     makemap(x, area = are, title=paste("SNOWCRAB TAG DATA    Area:", are, "     Year(s):", years, sep=" "))
 da = get.capturedata()
@@ -31,8 +31,7 @@ da = get.capturedata()
     #ind = which( as.character(da$caparea) == "GULF" & as.character(da$area) == "GULF"  )
     #if(length(ind)>0) 
     #da = da[-ind,]
-    
-    library(stringr)
+
     syear = da$sampyear
     #Remove data sampled outside the query year, years
     if(years != "all"){
@@ -135,7 +134,7 @@ da = get.capturedata()
     na = c("unknown" ,"same season", "1 season", "2 seasons", "3 seasons", "4+ seasons")
     cocode = cbind(co, na) 
     cocode = data.frame(cocode)
-    dbDisconnect(con)
+ 
     
     x = cbind(PID, POS, X, Y, colour)
     x = data.frame(x)
