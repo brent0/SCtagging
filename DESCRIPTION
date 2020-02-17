@@ -12,5 +12,4 @@ Collate:
     'SCtagging.R'
     'TagWebGUI.r'
     'TagPlot.r'
-    'otn_kml.r'
     'SCAccoustic.R'

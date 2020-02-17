@@ -47,7 +47,7 @@ get.acoustic.detections = function(region = "ScotianShelf"){
 #' @import ROracle 
 #' @return dataframe
 #' @export
-write.acoustic.releases = function(dir = file.path("D:", "OTN", "releases")){
+write.acoustic.releases = function(dir = file.path("E:", "OTN", "releases")){
   
   dftowrite = NULL
   
@@ -110,7 +110,7 @@ return(x)
 #' @import ROracle lubridate
 #' @return dataframe
 #' @export
-write.acoustic.detections = function(dir = file.path("D:", "OTN", "detections")){
+write.acoustic.detections = function(dir = file.path("E:", "OTN", "detections")){
   
   dftowrite = NULL
   
@@ -336,4 +336,140 @@ for(i in 1:length(das)){
   
 }
 return(da2)
+}
+#' @title  write.acoustic.detections
+#' @description  Write calculated path data to Oracle Database
+#' @import ROracle geosphere PBSmapping raster
+#' @return dataframe
+#' @export
+write.accoustic.paths = function(x, rel){
+  x = get.acoustic.detections()
+  rel = get.acoustic.releases()
+  statsframe = NULL
+  raster.path = file.path("E:", "maps", "depthraster2.tif") #meters
+  neighborhood = 16
+  type = "random.walk"      
+  
+  trans = NULL
+  r <- raster(raster.path)
+  mr = as.matrix(r)
+  mr[which(mr>-280 & mr< -60)] = -170
+  mr = apply(mr, 2, function(x) dnorm(x,mean=-170,sd=60))
+  r = setValues(r, mr)
+  
+  tr <- transition(r, mean, directions=neighborhood)
+  if(type  == "random.walk"){
+    trans <- geoCorrection(tr, type = "r", scl=FALSE)
+  }
+  if(type  == "least.cost"){
+    trans <- geoCorrection(tr, type = "c", scl=FALSE)
+  }
+  
+  
+  x$longitude = as.numeric(x$longitude)
+  x$latitude = as.numeric(x$latitude)
+  da2 = NULL
+  x$spliton = paste(as.character(x$yearcollected), as.character(x$julianday), sep="")
+  na = names(x)
+  das = split(x, x$catalognumber, drop = T)
+  
+  for(i in 1:length(das)){
+    sub = data.frame(das[i])
+    names(sub) = na
+    
+    
+    
+    da2 = rbind(da2, sub[which(sub$receiver == "release"),][1,])
+    relgrpind = which(as.character(sub$receiver) == "release")
+    sub = sub[-relgrpind,]
+    day = split(sub, sub$spliton, drop = T)
+    for(j in 1:length(day)){
+      dsub = data.frame(day[j])
+      if(nrow(dsub) > 0){
+        names(dsub) = na
+        dsub$longitude = mean(dsub$longitude)
+        dsub$latitude = mean(dsub$latitude)
+        da2 = rbind(da2, dsub[1,])
+      }
+    }
+    
+  }
+  
+  da2$TimeStamp = ymd(da2$TimeStamp)
+  da2 = da2[order(da2$TimeStamp),]
+  pana = names(da2)
+  pa = split(da2, da2$catalognumber, drop = T)
+  
+  for(j in 1:length(pa)){ 
+    npa = data.frame(pa[j])
+    
+    names(npa) = pana
+    
+    twri = NULL
+    if(nrow(npa)>1){
+      for(i in 2:nrow(npa)){  
+        start <- c(as.numeric(npa$longitude[i-1]), as.numeric(npa$latitude[i-1]))
+        end <- c(as.numeric(npa$longitude[i]), as.numeric(npa$latitude[i]))
+        days <-  npa$TimeStamp[i] - npa$TimeStamp[i-1]
+        if(abs(start[1] - end[1]) < res(trans)[1] && abs(start[2] - end[2]) < res(trans)[1] || is.na(cellFromXY(r, start)) || is.na(cellFromXY(r, end))){
+          AtoB = rbind(start, end)
+        }
+        else{
+          AtoB = shortestPath(trans, start, end, output="SpatialLines")
+        }
+        
+        
+        #cor = rbind(start, cor, end)
+        
+        
+        cor = data.frame(coordinates(AtoB))
+        names(cor) = c("x", "y")
+        xrep = cor$x[1]
+        yrep = cor$y[1]
+        for(k in 1:(nrow(cor)-1)){
+          
+          if(cor$x[k] == xrep){ cor$x[k] = start[1] }
+          else{ xrep = 1000000 }
+          
+          if(cor$y[k] == yrep){ cor$y[k] =  start[2] }
+          else{ yrep = 1000000 }
+        }
+        xrep = cor$x[nrow(cor)]
+        yrep = cor$y[nrow(cor)]
+        for(k in nrow(cor):2){
+          if(cor$x[k] == xrep) cor$x[k] =  end[1]
+          else xrep = 1000000
+          
+          if(cor$y[k] == yrep) cor$y[k] =  end[2]
+          else yrep = 1000000
+        }
+        names(cor) = c("X", "Y")
+        
+        cor$PID = 1
+        cor$POS = 1:nrow(cor)
+        
+        tpoly = as.PolySet(cor, projection = "LL")
+        leng = calcLength (tpoly, rollup = 3, close = FALSE) #km    
+        
+        cor$lat = cor$Y
+        cor$lon = cor$X
+        cor$pid = cor$PID
+        cor$pos = cor$POS
+        style = rel$styleUrl[which(rel$ANIMAL_ID == gsub("ZSC-" ,"", npa$catalognumber[1]))]
+        style = sub("rel", "line", style)
+        pdes  = paste("<![CDATA[ </br>Distance: ", as.character(leng$length), "km</br> days: ",  days,"]]>", sep = "")
+        print(pdes)
+        print(cor)
+        statsframe = rbind(statsframe,c(npa$catalognumber[1], as.character(days), leng))  
+        mykml$getFolder("Detections")$getFolder("Paths")$addFolder(fid = as.character(npa$catalognumber[1]), name = as.character(npa$catalognumber[1]))
+        mykml$getFolder("Detections")$getFolder("Paths")$getFolder(as.character(npa$catalognumber[1]))$addLineString(cor,  description = pdes,  styleUrl = style)
+        #mykml$getFolder("Detections")$getFolder(as.character(npa$catalognumber[1]))$getFolder("path")$addLineString(cor,  styleUrl = style)
+        #   mykml$getFolder("Detections")$getFolder(as.character(npa$catalognumber[1]))$addFolder(fid = "path", name = "path")
+        #   
+        #   mykml$getFolder("Detections")$getFolder(as.character(npa$catalognumber[1]))$addFolder(fid = "path", name = "path")
+        #   mykml$getFolder("Detections")$getFolder(as.character(npa$catalognumber[1]))$getFolder("path")$addLineString(cor,  styleUrl = style)
+      }
+    }
+  }
+  return(statsframe)
 }

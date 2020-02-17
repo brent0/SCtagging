@@ -6,6 +6,9 @@
 \usage{
 plottags(are, years)
 }
+\value{
+location of plot
+}
 \description{
 Function that creates movement charts
 }

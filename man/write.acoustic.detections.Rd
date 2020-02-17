@@ -4,7 +4,7 @@
 \alias{write.acoustic.detections}
 \title{write.acoustic.detections}
 \usage{
-write.acoustic.detections(dir = file.path("D:", "OTN", "detections"))
+write.acoustic.detections(dir = file.path("E:", "OTN", "detections"))
 }
 \value{
 dataframe

@@ -88,7 +88,7 @@ statsfigures = function(){
   out = data.frame()
   outall = data.frame()
   outarea = data.frame()
-  years = 2004:2018
+  years = 2004:2019
   nens = NULL
   sens = NULL
   xxxx = NULL
@@ -177,7 +177,7 @@ statsfigures = function(){
     #      xxxx = c(xxxx, zf$retuni)
     #     else xxxx = c(xxxx, NA)
   }
-  years = "2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018"
+  years = "2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019"
   za = tagReturned_Applied("all", as.character(years))
   zaa = tagApplied("all", as.character(years))
   zpa = tagReturned_Year("all", as.character(years))
@@ -190,12 +190,12 @@ statsfigures = function(){
     outall = rbind(outall, data.frame(za))
     
   }
-  write.csv( out, file.path("D:", "SCtagging", "stats_year_area.csv"))
-  write.csv( outall, file.path("D:", "SCtagging", "stats_year.csv"))
+  write.csv( out, file.path("E:", "SCtagging", "outputs", "stats_year_area.csv"))
+  write.csv( outall, file.path("E:", "SCtagging", "outputs", "stats_year.csv"))
   
   
   #####################################################
-
+  
   
   regions = c("cfanorth", "cfasouth", "cfa4x")
   k <- data.frame(nens, sens, xxxx)
@@ -212,8 +212,8 @@ statsfigures = function(){
   xrange = range(uyrs)
   xrange[1] = xrange[1]
   xrange[2] = xrange[2]
-
-  fn = file.path("C:", "Users","cameronbj","Desktop","Presentation","returns.pdf" )
+  
+  fn = file.path("E:", "SCtagging", "outputs","returns.pdf" )
   pdf(file=fn, width=7, height=7, bg='white')
   m=1
   miss <- !is.na(k[,m])
@@ -232,7 +232,7 @@ statsfigures = function(){
   dev.off()
   
   
-
+  
   k <- data.frame(out$upeo[which(out$area == "nens")], out$upeo[which(out$area == "sens")], out$upeo[which(out$area == "cfa4x")])
   k = as.data.frame( k )
   colnames(k) = regions
@@ -248,7 +248,7 @@ statsfigures = function(){
   xrange[1] = xrange[1]
   xrange[2] = xrange[2]
   xlabels = seq(xrange[1]+1, xrange[2], 2)
-  fn = file.path("C:", "Users","cameronbj","Desktop","Presentation","people.pdf" )
+  fn = file.path("E:", "SCtagging", "outputs","people.pdf" )
   pdf(file=fn, width=7, height=7, bg='white')
   m=1
   miss <- !is.na(k[,m])
@@ -290,7 +290,7 @@ statsfigures = function(){
   xrange[1] = xrange[1]
   xrange[2] = xrange[2]
   xlabels = seq(xrange[1]+1, xrange[2], 2)
-  fn = file.path("C:", "Users","cameronbj","Desktop","Presentation","movrate.pdf" )
+  fn = file.path("E:", "SCtagging", "outputs","movrate.pdf" )
   pdf(file=fn, width=7, height=7, bg='white')
   m=1
   miss <- !is.na(k[,m])
@@ -309,7 +309,7 @@ statsfigures = function(){
   dev.off()
   ########################################################
   
-outarea = NULL
+  outarea = NULL
   
   zn = tagReturned_Applied("nens", as.character(years))
   zta = tagApplied("nens", as.character(years))
@@ -350,8 +350,8 @@ outarea = NULL
   zna$peo = zpaa$a
   zna$upeo = zpaa$b
   outarea = rbind(outarea, data.frame(zna))   
-
-  write.csv( outarea, file.path("D:", "SCtagging", "stats_area.csv"))
+  
+  write.csv( outarea, file.path("E:", "SCtagging", "outputs", "stats_area.csv"))
   
   
   
@@ -364,18 +364,18 @@ outarea = NULL
   print(cdd[which(cdd$abscaparea == "NENS" & cdd$abssamparea == "SENS"),])
   print(cdd[which(cdd$abscaparea == "SENS" & cdd$abssamparea == "NENS"),])
   
- cdd4x = cdd[which(cdd$abssamparea == "CFA-4X" & as.numeric(as.character(cdd$sampyear)) >= 2008 ),]
-counts = as.data.frame(table(as.character(cdd4x$PID)))
-which(counts$Freq > 1)
-which(counts$Freq > 2)
+  cdd4x = cdd[which(cdd$abssamparea == "CFA-4X" & as.numeric(as.character(cdd$sampyear)) >= 2008 ),]
+  counts = as.data.frame(table(as.character(cdd4x$PID)))
+  which(counts$Freq > 1)
+  which(counts$Freq > 2)
   
-print(cdd[which(cdd$abscaparea == "CFA-4X" & cdd$abssamparea == "SENS"),])
-print(cdd[which(cdd$abscaparea == "SENS" & cdd$abssamparea == "CFA-4X"),])
-
-cp = get.path()
-cp$CDATE = dmy(cp$CDATE)
-ad = merge(cp, cdd, by.x = c("TID", "CDATE"), by.y = c("PID", "capdate") )
-
+  print(cdd[which(cdd$abscaparea == "CFA-4X" & cdd$abssamparea == "SENS"),])
+  print(cdd[which(cdd$abscaparea == "SENS" & cdd$abssamparea == "CFA-4X"),])
+  
+  cp = get.path()
+  cp$CDATE = dmy(cp$CDATE)
+  ad = merge(cp, cdd, by.x = c("TID", "CDATE"), by.y = c("PID", "capdate") )
+  
   #######################################################################
   
   
@@ -394,11 +394,11 @@ ad = merge(cp, cdd, by.x = c("TID", "CDATE"), by.y = c("PID", "capdate") )
   #   lines(dat[,1],dat[,2],col=color)
   # },mydfm,c("red","blue","green"))
   
-
   
   
-  arl = read.csv("D:/SCtagging/arel.csv")
-  apa = read.csv("D:/SCtagging/acpath.csv")
+  
+  arl = read.csv("E:/SCtagging/outputs/arel.csv")
+  apa = read.csv("E:/SCtagging/outputs/acpath.csv")
   names(apa) = c("rows", "id", "Days", "PID", "Km")
   apa$id = gsub("ZSC-", "", apa$id)
   apa$Area = NA
@@ -415,48 +415,48 @@ ad = merge(cp, cdd, by.x = c("TID", "CDATE"), by.y = c("PID", "capdate") )
   
   
   ad$DIST = as.numeric(ad$DIST)
-
-ad$Days = ad$CDATE - as.Date(ad$sampdat)
-ad$Days = as.numeric(ad$Days)
+  
+  ad$Days = ad$CDATE - as.Date(ad$sampdat)
+  ad$Days = as.numeric(ad$Days)
   ad$Sample.Area = ad$abssamparea
   
   ad$Km = ad$DIST
   xc = unlist(rainbow(length(unique(ad$sampyear))+3))
-xc = xc[4:length(xc)]
-#dt  = ad[which(ad$Sample.Area!='GULF'),]
-dt  = ad[which(ad$Days > 10),]
-dt  = dt[which(dt$caplat != 0),]
-dt  = dt[which(dt$abssamparea != "GULF"),]
-avli = sum(dt$DIST)/sum(dt$Days)
-avd = dt$Days*avli
-dt$year.group = NA
-# dt$year.group[which(dt$sampyear >= 1996 & dt$sampyear <= 1998)] = "1996-1998"
-# dt$year.group[which(dt$sampyear >= 1999 & dt$sampyear <= 2003)] = "1999-2003"
-# dt$year.group[which(dt$sampyear >= 2004 & dt$sampyear <= 2008)] = "2004-2008"
-# dt$year.group[which(dt$sampyear >= 2009 & dt$sampyear <= 2013)] = "2009-2013"
-# dt$year.group[which(dt$sampyear >= 2014)] = "2014-2017"
-
-dt$year.group[which(dt$sampyear >= 2004 & dt$sampyear <= 2008)] = "2004-2008"
-dt$year.group[which(dt$sampyear >= 2009 & dt$sampyear <= 2013)] = "2009-2013"
-dt$year.group[which(dt$sampyear >= 2014)] = "2014-2018"
-ind = which(is.na(dt$year.group))
-if(length(ind>0)) dt = dt[-ind,]
-
-
-ggplot2.scatterplot(data=dt, backgroundColor="white", size=5, xName='Days',yName='Km', groupName="Sample.Area", faceting=TRUE, facetingVarNames="year.group", legendTitle = "Release Area", facetingDirection="vertical", xtickLabelRotation = 90, addRegLine=TRUE, regLineColor="blue",addConfidenceInterval=TRUE, smoothingMethod="loess")
-
+  xc = xc[4:length(xc)]
+  #dt  = ad[which(ad$Sample.Area!='GULF'),]
+  dt  = ad[which(ad$Days > 10),]
+  dt  = dt[which(dt$caplat != 0),]
+  dt  = dt[which(dt$abssamparea != "GULF"),]
+  avli = sum(dt$DIST)/sum(dt$Days)
+  avd = dt$Days*avli
+  dt$year.group = NA
+  # dt$year.group[which(dt$sampyear >= 1996 & dt$sampyear <= 1998)] = "1996-1998"
+  # dt$year.group[which(dt$sampyear >= 1999 & dt$sampyear <= 2003)] = "1999-2003"
+  # dt$year.group[which(dt$sampyear >= 2004 & dt$sampyear <= 2008)] = "2004-2008"
+  # dt$year.group[which(dt$sampyear >= 2009 & dt$sampyear <= 2013)] = "2009-2013"
+  # dt$year.group[which(dt$sampyear >= 2014)] = "2014-2017"
+  
+  dt$year.group[which(dt$sampyear >= 2004 & dt$sampyear <= 2008)] = "2004-2008"
+  dt$year.group[which(dt$sampyear >= 2009 & dt$sampyear <= 2013)] = "2009-2013"
+  dt$year.group[which(dt$sampyear >= 2014)] = "2014-2018"
+  ind = which(is.na(dt$year.group))
+  if(length(ind>0)) dt = dt[-ind,]
+  
+  
+  ggplot2.scatterplot(data=dt, backgroundColor="white", size=5, xName='Days',yName='Km', groupName="Sample.Area", faceting=TRUE, facetingVarNames="year.group", legendTitle = "Release Area", facetingDirection="vertical", xtickLabelRotation = 90, addRegLine=TRUE, regLineColor="blue",addConfidenceInterval=TRUE, smoothingMethod="loess")
+  
   ggplot2.scatterplot(data=dt, backgroundColor="white", mainTitle="Kilometers vs. Days by Release Area", xName='Days',yName='Km', groupName="Sample.Area", addRegLine=TRUE, regLineColor="blue",addConfidenceInterval=TRUE, smoothingMethod="loess")
   ggplot2.scatterplot(data=dt, backgroundColor="white", size=5, mainTitle="Kilometers vs. Days by Release Area", groupColors=xc, xName='Days',yName='Km', groupName="sampyear", faceting=TRUE, facetingVarNames="Sample.Area")
-plot(avli, type="l")
-
-
-
-dt$relarea = absolutely.in.area2("unknown", dt$rellon, dt$rellat)
-dt$caparea2 = absolutely.in.area2("unknown", dt$caplon, dt$caplat)
-
-ggplot2.barplot(data=dt[which(dt$relarea == "SENS"),], xName='relarea', yName="caparea2", position=position_dodge())
-
-  }
+  plot(avli, type="l")
+  
+  
+  
+  dt$relarea = absolutely.in.area2("unknown", dt$rellon, dt$rellat)
+  dt$caparea2 = absolutely.in.area2("unknown", dt$caplon, dt$caplat)
+  
+  ggplot2.barplot(data=dt[which(dt$relarea == "SENS"),], xName='relarea', yName="caparea2", position=position_dodge())
+  
+}
 agescript = function(){
   
   da = get.capturedatacc()
@@ -507,12 +507,12 @@ agescript = function(){
 capture.history.spa= function(region = "ScotianShelf"){
   mcform = get.releases()
   cd = get.capturedata.oracle()
-
+  
   mcform$begin.time = NA
   mcform$initial.age = NA
   mcform$time.intervals = NA
   mcform$ch = NA
-
+  
   for(i in 1: nrow(mcform)){
     mcform$begin.time[i] = ymd(mcform$sampdat[i])
     mcform$initial.age[i] = mcform$cc[i]
@@ -523,40 +523,40 @@ capture.history.spa= function(region = "ScotianShelf"){
     mcform$ch[i] = paste(h, collapse = "")
     
     if(nrow(subcd)>0){
-    yearlis = c()
-    for(j in 1:nrow(subcd)){
-      if(!subcd$year[j] %in% yearlis){
-      yearlis = c(yearlis, subcd$year[j])
-      if(is.na(mcform$time.intervals[i])){
-        print(subcd$capdate[j] - subcd$sampdat[j])
-        mcform$time.intervals[i] = subcd$capdate[j] - subcd$sampdat[j]
+      yearlis = c()
+      for(j in 1:nrow(subcd)){
+        if(!subcd$year[j] %in% yearlis){
+          yearlis = c(yearlis, subcd$year[j])
+          if(is.na(mcform$time.intervals[i])){
+            print(subcd$capdate[j] - subcd$sampdat[j])
+            mcform$time.intervals[i] = subcd$capdate[j] - subcd$sampdat[j]
+          }
+          else{
+            mcform$time.intervals[i] = c(mcform$time.intervals[i], subcd$capdate[j] - subcd$sampdat[j])
+          }
+          
+        }
       }
-      else{
-        mcform$time.intervals[i] = c(mcform$time.intervals[i], subcd$capdate[j] - subcd$sampdat[j])
-      }
-  
-      }
-    }
     }
   }
-mc = mcform
-begin.time = mc$begin.time
-initial.age = mc$initial.age
-time.intervals =  mc$time.intervals
-mc$begin.time = NULL
-mc$initial.age = NULL
-mc$time.intervals = NULL
-x=process.data(data = mc, initial.ages = initial.age, time.intervals = time.intervals )
-x=process.data(data = mc, initial.ages = initial.age )
-
-x = process.data(data = mc)
-resight.matrix(y)
-
-naive.survival(x)
-
-mcmc_mode(x)
-accumulate_data(mc)
-
+  mc = mcform
+  begin.time = mc$begin.time
+  initial.age = mc$initial.age
+  time.intervals =  mc$time.intervals
+  mc$begin.time = NULL
+  mc$initial.age = NULL
+  mc$time.intervals = NULL
+  x=process.data(data = mc, initial.ages = initial.age, time.intervals = time.intervals )
+  x=process.data(data = mc, initial.ages = initial.age )
+  
+  x = process.data(data = mc)
+  resight.matrix(y)
+  
+  naive.survival(x)
+  
+  mcmc_mode(x)
+  accumulate_data(mc)
+  
 }
 
 
@@ -574,12 +574,12 @@ get.capturedatacc = function(){
   con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
   rs <- RMySQL::dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
   rs <- RMySQL::dbSendQuery(con, statement = "Select * from 
-                    (SELECT  bio.tag_id, bio.sample_num, bio.cc, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year, capture.carapace_cond, capture.tagcode 
-                    from capture join bio where bio.tag_id  = capture.tag) t1 
-                    JOIN (SELECT trip.trip_id, trip.statsarea, trip.subarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
-                    from trip join sample where sample.trip = trip.trip_id)t2
-                    ON t1.sample_num = t2.sample_id  
-                    ORDER BY captain, trip_id, tag_id, t1.date;")
+                            (SELECT  bio.tag_id, bio.sample_num, bio.cc, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year, capture.carapace_cond, capture.tagcode 
+                            from capture join bio where bio.tag_id  = capture.tag) t1 
+                            JOIN (SELECT trip.trip_id, trip.statsarea, trip.subarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
+                            from trip join sample where sample.trip = trip.trip_id)t2
+                            ON t1.sample_num = t2.sample_id  
+                            ORDER BY captain, trip_id, tag_id, t1.date;")
   
   da <- RMySQL::fetch(rs, n = -1)   # extract all rows
   dbDisconnect(con) 
@@ -605,7 +605,7 @@ get.capturedatacc = function(){
   }
   
   
- 
+  
   
   
   return(da)
@@ -624,7 +624,7 @@ get.capturedata.oracle = function(){
   res <- ROracle::fetch(res)
   
   names(res) = c("PID", "caplat", "caplon", "capdate", "caparea", "year", "csubarea", "rewarded", "sampdat", "area", "subarea", "sampyear","samplat", "samplon", "carapace", "chela", "cc")
-
+  
   
   return(res)
   
@@ -637,7 +637,7 @@ get.capturedata.ens = function(){
   con <- dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
   rs <- dbSendQuery(con, statement = "SET SQL_BIG_SELECTS = 1;")
   
- rs <- dbSendQuery(con, statement = "Select * from 
+  rs <- dbSendQuery(con, statement = "Select * from 
                     (SELECT  bio.tag_id, bio.sample_num, str_to_date( capture.date, '%d/%m/%Y' ) date, capture.statsarea, capture.subarea, capture.lat_DD_DDDD, capture.long_DD_DDDD, capture.year 
                     from capture join bio where bio.tag_id  = capture.tag) t1 
                     JOIN (SELECT trip.trip_id, trip.statsarea, trip.subarea, trip.year, trip.captain, trip.Reported, str_to_date( trip.date, '%d/%m/%Y' ) date, sample.lat_DD_DDDD, sample.long_DD_DDDD, sample.sample_id
@@ -657,7 +657,7 @@ get.capturedata.ens = function(){
   
   names(da) = c("PID", "capdate", "caparea", "csubarea","caplat", "caplon", "year", "area", "subarea", "sampyear", "sampdat", "samplat", "samplon")
   previd = ""
- # da = da[order(da$PID),]
+  # da = da[order(da$PID),]
   for(i in 1:nrow(da)){
     if(da$PID[i] == previd){
       da$samplat[i] = da$caplat[i-1]
@@ -773,7 +773,7 @@ enter.returns.public = function(){
 #' @export
 shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.tif", package = "SCtagging"), neighborhood = 16, type = "random.walk", redo = F, region = "ScotianShelf"){
   drv <- DBI::dbDriver("Oracle")
-    gstring = ""
+  gstring = ""
   if(region == "Gulf") gstring = "_GULF"
   x = get.capturedata(region)
   x$PID = as.character(x$PID)
@@ -812,14 +812,14 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
   dftowrite = NULL
   df2towrite = NULL
   dxtowrite = NULL
-
+  
   if(!redo){
-
+    
     con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
     respat <- ROracle::dbSendQuery(con, "select * from SCT_PATH") 
-    da <- fetch(respat)
+    da <-  ROracle::fetch(respat)
     ROracle::dbDisconnect(con)
-  
+    
     goodind = which(paste(as.character(x$PID), format(x$capdate, "%d/%m/%Y")) %in% paste(as.character(da$TID), as.character(da$CDATE)))
     if(length(goodind) > 0) x = x[-goodind,]
     zeroind = which(as.numeric(x$caplat) == 0 | x$caplat == 'unknown')
@@ -829,7 +829,6 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     previd = ""
     
     for(i in 1:nrow(x)){
-      print(previd)
       if(x$PID[i] == previd){
         count = count+1
       }
@@ -877,9 +876,9 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
       
       dxp = cbind(rep(x$PID[i], nrow(cor)),rep(count, nrow(cor)), 1:nrow(cor), cor$X, cor$Y)
       dxtowrite = rbind(dxtowrite, dxp)
-      df2towrite = rbind(df2towrite, cbind(x$PID[i], count, x$capdat[i], leng$length))
+      df2towrite = rbind(df2towrite, cbind(x$PID[i], count, as.character(x$capdat[i]), leng$length))
       
-      dftowrite = rbind(dftowrite, cbind(x$PID[i],paste(cor[,1], collapse = ","), paste(cor[,2], collapse = ","), x$capdat[i], leng$length))
+      dftowrite = rbind(dftowrite, cbind(x$PID[i],paste(cor[,1], collapse = ","), paste(cor[,2], collapse = ","), as.character(x$capdat[i]), leng$length))
       
     }
     
@@ -935,9 +934,9 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
       
       dxp = cbind(rep(x$PID[i], nrow(cor)),rep(count, nrow(cor)), 1:nrow(cor), cor$X, cor$Y)
       dxtowrite = rbind(dxtowrite, dxp)
-      df2towrite = rbind(df2towrite, cbind(x$PID[i], count, x$capdat[i], leng$length))
+      df2towrite = rbind(df2towrite, cbind(x$PID[i], count, as.character(x$capdat[i]), leng$length))
       
-      dftowrite = rbind(dftowrite, cbind(x$PID[i],paste(cor[,1], collapse = ","), paste(cor[,2], collapse = ","), x$capdat[i], leng$length))
+      dftowrite = rbind(dftowrite, cbind(x$PID[i],paste(cor[,1], collapse = ","), paste(cor[,2], collapse = ","), as.character(x$capdat[i]), leng$length))
       
       
     }
@@ -947,44 +946,19 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
   if(!is.null(dftowrite)){
     dftowrite = data.frame(dftowrite)
     df2towrite = data.frame(df2towrite)
-    str(df2towrite)
+
     names(dftowrite) = c("ID", "LON", "LAT", "CDATE", "DIST")
     names(df2towrite) = c("TID", "CID", "CDATE", "DIST")
     dxtowrite = data.frame(dxtowrite)
     names(dxtowrite) = c("TID", "CID", "POS", "LON", "LAT")
     drv <- DBI::dbDriver("Oracle")
-    if(redo){
-      
-      # con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-      # 
-      # if(dbExistsTable(con, "SCT_PATHS"))dbSendQuery(con, "DROP TABLE SCT_PATHS")
-      # if(dbExistsTable(con, "SCT_PATH"))dbSendQuery(con, "DROP TABLE SCT_PATH")
-      # 
-      # dbDisconnect(con)
-    }
+
     Sys.setenv(TZ = "America/Halifax")
     Sys.setenv(ORA_SDTZ = "America/Halifax")
-    
-    dftowrite$CDATE = as.POSIXct(as.numeric(as.character(dftowrite$CDATE)), origin = '1970-01-01')
-    df2towrite$CDATE = as.POSIXct(as.numeric(as.character(df2towrite$CDATE)), origin = '1970-01-01')
-    
-    #attr(dftowrite$LON, "ora.type") <- 'CLOB'
-    #attr(dftowrite$LON, "ora.encoding") <- 'UTF-8'
-    #attr(dftowrite$LAT, "ora.type") <- 'CLOB'
-    # attr(dftowrite$LAT, "ora.encoding") <- 'UTF-8'
-    
-    
-    ## Use username/password authentication.
-    
-    
-    ###################################################
-    
-    
-    # con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    # dbWriteTable(con, "SCT_PATHS", dx, date = T, row.names = F)
-    # dbDisconnect(con)
-    
-    ###################NEED TO UPDATE, FIND SOLUTION THE SLOW CLOB VALUES. PROCEEDING WITH MYSQL FOR NOW
+    str(dftowrite$CDATE)
+    dftowrite$CDATE = as.POSIXct(dftowrite$CDATE, origin = '1970-01-01')
+    df2towrite$CDATE = as.POSIXct(df2towrite$CDATE, origin = '1970-01-01')
+
     
     xx= NULL
     xy=NULL
@@ -1005,23 +979,11 @@ shortestpaths.SC = function(raster.path = system.file("extdata", "depthraster2.t
     df2towrite$CDATE[which(df2towrite$CDATE == "11/11/1111")] = NA
     
     
-    
-    # local_port = "3309"
-    # SCtunnel = openportSC(local.port = local_port)
-    # 
-    # con <- dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
-    # 
-    # rs <- RMySQL::dbWriteTable(con, "paths",  dftowrite, row.names = F, overwrite = T, append = FALSE)
-    # rs <- RMySQL::dbWriteTable(con, "path",  dxtowrite, row.names = F, overwrite = T, append = FALSE)
-    # 
-    # dbDisconnect(con) 
-    # closeportSC(SCtunnel)
-
     con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
     if(redo){
-    dbWriteTable(con,"SCT_PATHS", dxtowrite, overwrite = T)
-    dbWriteTable(con,"SCT_PATH", df2towrite, overwrite = T)
-
+      dbWriteTable(con,"SCT_PATHS", dxtowrite, overwrite = T)
+      dbWriteTable(con,"SCT_PATH", df2towrite, overwrite = T)
+      
     }
     else{
       dbWriteTable(con,"SCT_PATHS", dxtowrite, append = T)
@@ -1090,7 +1052,7 @@ mirror2esnssite = function(region = "ScotianShelf"){
   
   
   
-  local_port = "3308"
+  local_port = "3306"
   SCtunnel = openportSC(local.port = local_port)
   if(region == "ScotianShelf")con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_admin", sep = ""), password = enssnowc.password, dbname = "enssnowc_Taging",  port = as.numeric(local_port), host = "localhost")
   if(region == "Gulf")con <- RMySQL::dbConnect(RMySQL::MySQL(), user = paste(enssnowc.user, "_gulf", sep = ""), password = enssnowc.password, dbname = "enssnowc_GulfTag",  port = as.numeric(local_port), host = "localhost")
@@ -1108,6 +1070,342 @@ mirror2esnssite = function(region = "ScotianShelf"){
   
   return("mirror successfull !!")
 }
+
+
+#' @title  create.tag.kml.2
+#' @description  Write tag movement data to kml. 
+#' @param filename path to write the resulting kml
+#' @import chron sp geosphere stringr kmlbuilder
+#' @export
+create.tag.kml.2 = function(write =T, preview = T, tofile = NULL ){
+  
+  
+  samps <- get.releases()
+  
+ 
+  
+ 
+  
+  names(samps) = c("PID", "cc", "cw", "ch", "dur", "inArea","inFolder", "date", "lat", "lon")
+  
+  samps$inFolder = paste("rel_", samps$inFolder, sep = "") 
+  
+  
+  da = get.capturedata()
+
+  da$sample_num = NULL
+  da$trip_id = NULL
+  da$captain = NULL
+  da$Reported = NULL
+  
+  da$sample_id = NULL
+  
+  names(da) = c("PID", "capdate", "caparea","caplat", "caplon", "year", "area", "sampyear", "sampdat", "samplat", "samplon")
+  
+  
+  X=NULL
+  Y=NULL
+  PID=NULL
+  POS=NULL
+  colour=NULL
+  ddif = NULL
+  ddate = NULL
+  ind = which(as.character(da$caplat) == "0")
+  da = da[-ind,]
+  
+  ind = which(as.character(da$year) == "")
+  if(length(ind) > 0 )da = da[-ind,]
+  ind = which(as.character(da$area) == "GULF"  & as.numeric(as.character(da$sampyear)) <= 2014 )
+  #ind = which(as.character(da$caparea) == "GULF" & as.character(da$area) == "GULF")
+  
+  da = da[-ind,]
+  dup = 0
+  
+  
+  
+  mattxt = "unknown"
+  
+  ind = which(as.character(da$year) == mattxt)
+  
+  if(length(ind)>0) 
+    da = da[-ind,]
+  
+  mattxt = "unknown unknown"
+  
+  ind = which(as.character(da$year) == mattxt)
+  
+  if(length(ind)>0) 
+    da = da[-ind,]
+  
+  
+  da = da[order(da$capdat),]
+  outframe = NULL
+  outarrow = NULL
+  jsfinal = ""
+  dx = split(da, da$sampyear)
+  for(i in 1:length(dx)){
+    #markernum = 0
+    #ymain = main
+    out = NULL
+    da_y = dx[[i]]
+    
+    #ymain = sub("..year..", da_y$sampyear[1], ymain)
+    
+    da_tid = split(da_y, as.character(da_y$PID))
+    #allmarkers = ""
+    for(j in 1:length(da_tid)){
+      fin_da = da_tid[[j]]
+      
+      sampchron = chron(as.character(fin_da$sampdat[1]), format = "y-m-d")
+      
+      # fin_path = path[which(path$id == fin_da$PID[1]),]
+      fin_path = get.pathdata.tid(region = "ScotianShelf", tid = fin_da$PID[1])
+      fin_path = unique( fin_path[ , 1:ncol(fin_path) ] )
+      fin_path$CID = as.numeric(fin_path$CID)
+      fin_path$POS = as.numeric(fin_path$POS)
+      fin_path = fin_path[order(fin_path$CID, fin_path$POS),]
+      markerblock = ""
+      sub_out = NULL
+      description = "<![CDATA[<b> datetxt  <br><br> disttxt</b>]]>"
+      disttxt = ""
+      datetxt = ""
+      tid = ""
+      
+      for(k in 1:length(unique(fin_path$CID))){
+        
+        
+        capchron = chron(as.character(fin_da$capdate[k]), format = "y-m-d")
+        
+        date = as.character(fin_da$capdate[k])
+        
+        if(is.na(capchron)){
+          date = paste("No date returned, received in ",fin_da$year[k])
+          if( as.character(fin_da$caparea[k]) == "NENS") capchron = chron(paste( as.character(fin_da$year[k]),"-07-15", sep=""), format = "y-m-d")
+          if( as.character(fin_da$caparea[k]) == "SENS") capchron = chron(paste( as.character(fin_da$year[k]),"-08-15", sep=""), format = "y-m-d")
+          if( as.character(fin_da$caparea[k]) == "GULF") capchron = chron(paste( as.character(fin_da$year[k]),"-08-15", sep=""), format = "y-m-d")
+          if( as.character(fin_da$caparea[k]) == "4X") capchron = chron(paste( as.character(fin_da$year[k]),"-03-15", sep=""), format = "y-m-d")
+          
+        }
+        dif = capchron - sampchron
+        dif = as.numeric(dif)
+        # arrls = "ls[0]"
+        # cc2 = ""
+        # if(is.na(dif)){ arrls = "ls[0]"
+        # cc2 = "000000" 
+        # } 
+        # else if(dif < 180){ arrls = "ls[1]"
+        # cc2 = "ff0000"
+        # }
+        # else if(dif < 545){ arrls = "ls[2]"
+        # cc2 = "00aa00"
+        # }
+        # else if(dif < 1090){ arrls = "ls[3]"
+        # cc2 = "0000ff"
+        # }
+        # else if(dif < 1455){ arrls = "ls[4]"
+        # cc2 = "ffff00"
+        # }
+        # else{ 
+        #   arrls = "ls[5]"
+        #   cc2 = "55007f"
+        # }
+        cc = ""
+        hr = ""
+        lst = ""
+        if(is.na(dif)){ 
+          cc = "000000"
+          hr = "http://enssnowcrab.com/R/tag/go/blarrow.png"
+          lst = "lsc1"
+        } else if(dif < 180) { 
+          cc = "0000ff" 
+          hr = "http://enssnowcrab.com/R/tag/go/rarrow.png"
+          lst = "lsc2"
+        } else if(dif < 545) { 
+          #cc = "003800" 
+          cc = "00AA00" 
+          #hr = "http://enssnowcrab.com/R/tag/go/dgarrow.png" 
+          hr = "http://enssnowcrab.com/R/tag/go/garrow.png" 
+          lst = "lsc3"
+        } else if(dif < 1090){ 
+          cc = "ff0000" 
+          hr = "http://enssnowcrab.com/R/tag/go/barrow.png"
+          lst = "lsc4"
+        } else if(dif < 1455) { 
+          cc = "00ffff" 
+          hr = "http://enssnowcrab.com/R/tag/go/yarrow.png"
+          lst = "lsc5"
+        } else{ 
+          cc = "7f0055" 
+          hr = "http://enssnowcrab.com/R/tag/go/parrow.png" 
+          lst = "lsc6"
+        }
+        
+        
+        
+        #lon = unlist(str_split(fin_path[k,]$lon, ","))
+        #lat = unlist(str_split(fin_path[k,]$lat, ","))
+        lon = fin_path$LON[which(fin_path$CID == k)]
+        lat = fin_path$LAT[which(fin_path$CID == k)]
+        
+        if(k==1){
+          
+          disx = cbind(as.numeric(lon), as.numeric(lat))
+          names(disx) = c("lon", "lat")
+          
+          leng = as.matrix(disx)
+          leng = Line(leng)
+          llen =  LineLength(leng, longlat = T)
+          #dist = (distVincentyEllipsoid(dx, a=6378137, b=6356752.3142, f=1/298.257223563))/1000
+          #dist = distVincentySphere(c(chunk$X[k-1],chunk$Y[k-1]), c(chunk$X[k],chunk$Y[k]), r=6378137)
+          disttxt = paste("DISPLACEMENT: <br>   From release to 1st capture: ", signif(llen, digits=3), "km <br>", sep = "")
+          if(grepl("No date", date)){
+            datetxt = paste("TAG NUMBER:",fin_da$PID[1], "<br>TAGGED ON: ", as.character(chron(sampchron, out.format = "m d yyyy")), " <br>CAPTURED ON: ", date, sep = "")
+          } else {
+            datetxt = paste("TAG NUMBER:",fin_da$PID[1], "<br>TAGGED ON: ", as.character(chron(sampchron, out.format = "m d yyyy")), " <br>CAPTURED ON: ", as.character(chron(as.chron(date), out.format = "m d yyyy")), sep = "")
+          }
+          bearfro = (length(lon)-3) : length(lon)
+          bearfro = bearfro[bearfro > 0]
+          
+          icon_heading = bearing(p1 = c(as.numeric(lon[bearfro[1]]),as.numeric(lat[bearfro[1]] )), p2 = c(as.numeric(lon[bearfro[length(bearfro)]]),as.numeric(lat[bearfro[length(bearfro)]] )))
+          
+          
+        }
+        if(k>1){
+          
+          disx = cbind(as.numeric(lon), as.numeric(lat))
+          names(disx) = c("lon", "lat")
+          leng = as.matrix(disx)
+          leng = Line(leng)
+          llen =  LineLength(leng, longlat = T)
+          
+          #dist = (distVincentyEllipsoid(dx, a=6378137, b=6356752.3142, f=1/298.257223563))/1000
+          #dist = distVincentySphere(c(chunk$X[k-1],chunk$Y[k-1]), c(chunk$X[k],chunk$Y[k]), r=6378137)
+          disttxt = paste(disttxt, "<br>   To next capture:", signif(llen, digits=3), "km ") 
+          if(grepl("No date", date)){
+            datetxt = paste(datetxt, "<br>   CAPTURED AGAIN ON: ", date, sep = "")
+          } else {
+            datetxt = paste(datetxt, "<br>   CAPTURED AGAIN ON: ", as.character(chron(as.chron(date), out.format = "m d yyyy")), sep = "")
+          }
+          bearfro = (length(lon)-3) : length(lon)
+          bearfro = bearfro[bearfro > 0]
+          icon_heading = bearing(p1 = c(as.numeric(lon[bearfro[1]]),as.numeric(lat[bearfro[1]] )), p2 = c(as.numeric(lon[bearfro[length(bearfro)]]),as.numeric(lat[bearfro[length(bearfro)]] )))
+          
+        }
+        pid = paste(fin_da$PID[k], k, sep = ".")
+        line_color = rep(cc, length(lon))
+        icon_href = rep(hr, length(lon))
+        #line_href = rep(lst, length(lon))
+        if(is.null(sub_out)){
+          sub_out = data.frame(cbind(pid, lon, lat, line_color, line_width = 2))
+        }else{
+          sub_out = rbind(sub_out, cbind(pid, lon, lat, line_color, line_width = 2))
+        }
+        
+        
+        
+        if(is.null(outarrow)){
+          outarrow = data.frame(cbind(pid, da_y$sampyear[1], lon[length(lon)], lat[length(lat)], icon_heading, hr, .4))
+        }else{
+          outarrow = rbind(outarrow, cbind(pid, da_y$sampyear[1], lon[length(lon)], lat[length(lat)],icon_heading, hr, .4))
+        }
+        
+        # ymarker = markers
+        # tespos = paste(paste("{lat: ", lat, ",lng: ", lon, "}", sep = ""), collapse = ",")
+        # ymarker = sub("..positions..", tespos, ymarker)
+        # ymarker = sub("..color..", cc2, ymarker)     
+        # ymarker = gsub("..arindex..", markernum, ymarker)
+        # ymarker = sub("..ls..", arrls, ymarker)
+        # markernum = markernum + 1
+        # markerblock = paste(markerblock, ymarker, sep=" 
+        #                     ")
+        
+        
+      }
+      
+      description = sub("disttxt", disttxt, description)
+      description = sub("datetxt", datetxt, description)
+      sub_out$description = description
+      sub_out$POS = 1:nrow(sub_out)
+      
+      
+      if(is.null(out)){
+        out = sub_out
+      }else{
+        out = rbind(out, sub_out)
+      }
+      
+      
+    }
+    
+    out$inFolder = da_y$sampyear[1]
+    
+    
+    
+    if(is.null(outframe)){
+      outframe = out
+    }else{
+      outframe = rbind(outframe, out)
+    }
+    
+    #   ymain = sub("..markers..", allmarkers, ymain)
+    # jsfinal = paste(jsfinal, ymain, sep = "
+    #                   ")
+    
+    
+    
+  }
+  require(kmlbuilder)
+  outframe$pid = gsub("G", "9999", outframe$pid)
+  mykml = RKmlObject()
+  
+  
+  mykml$addIconStyle(styleid = "iconstyle1", color = "yellow", href = "http://maps.google.com/mapfiles/kml/shapes/shaded_dot.png", scale = .4)
+  
+  
+  mykml$addFolder(fid = "Releases", name = "Releases") 
+  mykml$addPoint(samps, styleUrl = "iconstyle1")
+  
+  mykml$addLineStyle(styleid = "lsc1", color = "000000", width = 15)
+  mykml$addLineStyle(styleid = "lsc2", color = "0000ff", width = 15)
+  #mykml$addLineStyle(styleid = "lsc3", color = "003800", width = 8)
+  mykml$addLineStyle(styleid = "lsc3", color = "00AA00", width = 15)
+  mykml$addLineStyle(styleid = "lsc4", color = "ff0000", width = 15)
+  mykml$addLineStyle(styleid = "lsc5", color = "00ffff", width = 15)
+  mykml$addLineStyle(styleid = "lsc6", color = "7f0055", width = 15)
+  
+  names(outarrow) = c("pid", "inFolder", "lon", "lat", "icon_heading", "icon_href", "icon_scale")
+  
+  mykml$addPoint(outarrow)
+  mykml$addLineString(outframe, altitudeMode = "relativeToGround")
+  
+  #mykml$addScreenOverlay(fn = "E:\\SCtagging\\data\\taglegend.png", size_x = .2, size_y = .2, screen_x = .8, screen_y = .8 )
+  
+  if(preview){
+    mykml$preview()
+  }
+  if(write){
+    if(is.null(tofile)){
+      mykml$writekml(path = file.path(getwd(), "kml_outputs", "SCtagging_kml_2.kml"))
+    }
+    else{
+      mykml$writekml(path = tofile)
+      
+    }
+  }
+  
+  # if(is.null(filename)){
+  #   sink("jsfinal.js")
+  #   cat(jsfinal)
+  #   sink()
+  # }
+  # else{
+  #   sink(filename)
+  #   cat(jsfinal)
+  #   sink()  
+  # }
+  
+}
+
 
 #' @title  create.tag.kml
 #' @description  Function that generates a kml plot of tag data 
@@ -1146,6 +1444,9 @@ create.tag.kml = function(preview = T, write = T, tofile = NULL){
   closeportSC(SCtunnel)
   dbDisconnect(con)
   
+  names(samps) = c("area", "inArea","inFolder", "date", "lat", "lon", "unk")
+  
+  samps$inFolder = paste("rel_", samps$inFolder, sep = "") 
   
   
   da$sample_id = NULL
@@ -1154,10 +1455,7 @@ create.tag.kml = function(preview = T, write = T, tofile = NULL){
   
   
   
-  names(samps) = c("area", "inArea","inFolder", "date", "lat", "lon", "unk")
-  
-  samps$inFolder = paste("rel_", samps$inFolder, sep = "") 
-  
+
   
   
   names(path) = c("id","lon", "lat", "cdat", "dist")
@@ -1265,8 +1563,8 @@ create.tag.kml = function(preview = T, write = T, tofile = NULL){
           #cc = "003800" 
           cc = "00AA00" 
           #hr = "http://enssnowcrab.com/R/tag/go/dgarrow.png" 
-        hr = "http://enssnowcrab.com/R/tag/go/garrow.png" 
-        lst = "lsc3"
+          hr = "http://enssnowcrab.com/R/tag/go/garrow.png" 
+          lst = "lsc3"
         }
         else if(dif < 1090){ cc = "ff0000" 
         hr = "http://enssnowcrab.com/R/tag/go/barrow.png"
@@ -1446,16 +1744,16 @@ create.tag.geojson = function(filename = NULL){
   # 
   # da <- fetch(rs, n = -1)   # extract all rows
   da = get.capturedata()
-
- # rs <- dbSendQuery(con, statement = "Select * from paths;")
+  
+  # rs <- dbSendQuery(con, statement = "Select * from paths;")
   
   #path <- fetch(rs, n = -1)   # extract all rows
   # closeportSC(SCtunnel)
   # dbDisconnect(con)
   
- # names(path) = c("id","lon", "lat", "cdat", "dist")
+  # names(path) = c("id","lon", "lat", "cdat", "dist")
   
- # path = path[order(path$cdat),]
+  # path = path[order(path$cdat),]
   
   da$sample_num = NULL
   da$trip_id = NULL
@@ -1485,7 +1783,7 @@ create.tag.geojson = function(filename = NULL){
   da = da[-ind,]
   dup = 0
   
-
+  
   
   mattxt = "unknown"
   
@@ -1522,7 +1820,7 @@ create.tag.geojson = function(filename = NULL){
       
       sampchron = chron(as.character(fin_da$sampdat[1]), format = "y-m-d")
       
-     # fin_path = path[which(path$id == fin_da$PID[1]),]
+      # fin_path = path[which(path$id == fin_da$PID[1]),]
       fin_path = get.pathdata.tid(region = "ScotianShelf", tid = fin_da$PID[1])
       description2 = "<b> datetxt  <br><br> disttxt</b>"
       disttxt = ""
@@ -1532,7 +1830,7 @@ create.tag.geojson = function(filename = NULL){
       
       
       for(k in 1:length(unique(fin_path$CID))){
-
+        
         
         capchron = chron(as.character(fin_da$capdate[k]), format = "y-m-d")
         
@@ -1940,7 +2238,7 @@ recaps.plot = function(){
 get.paths = function(){
   
   gstring = ""
-  local_port = "3309"
+  local_port = "3308"
   
   SCtunnel = openportSC(local.port = local_port)
   
@@ -1973,7 +2271,7 @@ get.paths = function(){
 #' @param local.port what port to tunnel through
 #' @param remote.port what port to tunnel through
 #' @export
-openportSC = function(user = enssnowc.user, password = enssnowc.password, host = "enssnowcrab.com", local.port = NULL, remote.port = "3306" ){
+openportSC = function(user = enssnowc.user, password = enssnowc.password, host = "box5730.bluehost.com", local.port = NULL, remote.port = "3306" ){
   
   if(is.null(local.port)) local.port = "3308"
   
@@ -2042,10 +2340,10 @@ get.releases = function(region = "ScotianShelf"){
   query = paste("SELECT SCT_BIO", gstring,".TAG_ID,
                 SCT_BIO", gstring,".SAMPLE_NUM,
                 SCT_BIO", gstring,".CC,
-              SCT_BIO", gstring,".CARAPACE_W,
-              SCT_BIO", gstring,".CHELA_H,  
-       SCT_BIO", gstring,".DUROMETER, 
-              SCT_TRIP", gstring,".TRIP_ID,
+                SCT_BIO", gstring,".CARAPACE_W,
+                SCT_BIO", gstring,".CHELA_H,  
+                SCT_BIO", gstring,".DUROMETER, 
+                SCT_TRIP", gstring,".TRIP_ID,
                 SCT_TRIP", gstring,".STATSAREA AS STATSAREA1,
                 SCT_TRIP", gstring,".YEAR      AS YEAR1,
                 SCT_TRIP", gstring,".RELEASE_DATE,
@@ -2061,10 +2359,10 @@ get.releases = function(region = "ScotianShelf"){
                 SCT_BIO", gstring,".TAG_ID,
                 SCT_TRIP", gstring,".RELEASE_DATE", sep = "")
   
-   resbio <- ROracle::dbSendQuery(conn, query) 
-   da <- fetch(resbio)
+  resbio <- ROracle::dbSendQuery(conn, query) 
+  da <- ROracle::fetch(resbio)
   #da = RODBC::sqlQuery(con, query )
-   ROracle::dbDisconnect(con)
+  ROracle::dbDisconnect(conn)
   #RODBC::odbcClose(con)
   # da <- RODBC::fetch(rs, n = -1)   # extract all rows
   #RODBC::dbDisconnect(con) 
@@ -2075,7 +2373,7 @@ get.releases = function(region = "ScotianShelf"){
   da$SAMPLE_ID = NULL
   
   names(da) = c("PID", "cc", "cw", "ch", "dur", "area", "sampyear", "sampdat", "rellat", "rellon")
- 
+  
   return(da)
 }
 #' @title  get.capturedata
@@ -2105,7 +2403,7 @@ get.capturedata = function(region = "ScotianShelf"){
   #                     ORDER BY captain, trip_id, tag_id, t1.date;")
   drv <- DBI::dbDriver("Oracle")
   con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-
+  
   
   #con = RODBC::odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   da = NULL
@@ -2139,16 +2437,16 @@ get.capturedata = function(region = "ScotianShelf"){
                 SCT_BIO", gstring,".TAG_ID,
                 SCT_CAPTURE", gstring,".CAPTURE_DATE", sep = "")
   
-   resbio <- ROracle::dbSendQuery(con, query) 
-   da <- fetch(resbio)
+  resbio <- ROracle::dbSendQuery(con, query) 
+  da <-  fetch(resbio)
   #da = RODBC::sqlQuery(con, query )
-   ROracle::dbDisconnect(con)
+  ROracle::dbDisconnect(con)
   #RODBC::odbcClose(con)
-# da <- RODBC::fetch(rs, n = -1)   # extract all rows
- #RODBC::dbDisconnect(con) 
+  # da <- RODBC::fetch(rs, n = -1)   # extract all rows
+  #RODBC::dbDisconnect(con) 
   # closeportSC(SCtunnel)
-   da$CAPTURE_DATE = as.Date(da$CAPTURE_DATE)
-   da$RELEASE_DATE = as.Date(da$RELEASE_DATE)
+  da$CAPTURE_DATE = as.Date(da$CAPTURE_DATE)
+  da$RELEASE_DATE = as.Date(da$RELEASE_DATE)
   da = unique(da)
   da$SAMPLE_NUM = NULL
   da$TRIP_ID = NULL
@@ -2226,7 +2524,7 @@ get.path = function(region = "ScotianShelf"){
   
   
   respat <- ROracle::dbSendQuery(con, paste("select * from SCT_PATH", gstring, sep = ""))
-  respat <- fetch(respat)
+  respat <-  ROracle::fetch(respat)
   ROracle::dbDisconnect(con)
   
   return(respat)
@@ -2261,7 +2559,7 @@ data2Poly = function(da){
         D = c(D, sampchron)
         POS = c(POS, dup[1])
         PID = c(PID, da$PID[i])
-          K = c(K, 0)
+        K = c(K, 0)
       }
       
       dup = dup+1
@@ -2271,7 +2569,7 @@ data2Poly = function(da){
       D = c(D, capchron)
       POS = c(POS, dup[1])
       PID = c(PID, da$PID[i])
-        K = c(K, da$km[i])
+      K = c(K, da$km[i])
       
     }
     else{
@@ -2280,13 +2578,13 @@ data2Poly = function(da){
       D = c(D, sampchron)
       POS = c(POS, 1)
       PID = c(PID,da$PID[i])
-          K = c(K, 0)
+      K = c(K, 0)
       X = c(X, da$caplon[i])
       Y = c(Y, da$caplat[i])
       D = c(D, capchron)
       POS = c(POS, 2)
       PID = c(PID, da$PID[i])
-         K = c(K, da$km[i])
+      K = c(K, da$km[i])
       dup = 2
       
     }
@@ -2383,7 +2681,7 @@ absolutely.in.area = function(area, abslon, abslat){
   p5 = c(-59.11881785180857,43.67610276909335)
   p6 = c(-56.5, 44)
   p7 = c(-57.78560987011954,46.00106076110973) 
-
+  
   are = rbind(p1, p2, p3, p4, p5, p6, p7)
   pa = Polygon(are)
   paa = Polygons(list(pa), "s1")
@@ -2621,10 +2919,10 @@ degmin2decdeg = function(ddmmss.ss){
   decmin = as.numeric(min) + sec/60
   decdeg = as.numeric(deg) + decmin/60
   if(neg) decdeg = decdeg*-1
-return(decdeg)  
+  return(decdeg)  
   
 }
-  
+
 
 #' @title  absolutely.in.area2
 #' @description  Function that determines if a list of positions are inside defined polygons 
@@ -2638,13 +2936,13 @@ absolutely.in.area2 = function(area, abslon, abslat){
   polyredo = F
   are = rep("unk", length(abslat))
   
- # latlong =  "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=63.390675 +lon_0=-91.86666666666666 +x_0=6200000 +y_0=3000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
- # latlong = "+init=epsg:4326"
- # latlong = "+init=epsg:3347 +proj=lcc +lat_1=49 +lat_2=77 +lat_0=63.390675 +lon_0=-91.86666666666666 +x_0=6200000 +y_0=3000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+  # latlong =  "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=63.390675 +lon_0=-91.86666666666666 +x_0=6200000 +y_0=3000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+  # latlong = "+init=epsg:4326"
+  # latlong = "+init=epsg:3347 +proj=lcc +lat_1=49 +lat_2=77 +lat_0=63.390675 +lon_0=-91.86666666666666 +x_0=6200000 +y_0=3000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
   latlong = "+proj=longlat +datum=NAD27 +no_defs"
- # latlong = "+init=epsg:3347"
+  # latlong = "+init=epsg:3347"
   
-   p1 = c(-60.41568418984078,47.03853523297152)
+  p1 = c(-60.41568418984078,47.03853523297152)
   p2 = c(-60.00014897319883,47.83408958793515 )
   p3 = c(-60, 50.3)
   p4 = c(-68, 50)
@@ -2662,16 +2960,16 @@ absolutely.in.area2 = function(area, abslon, abslat){
     proj4string(SPDF) = CRS(latlong)
     writeOGR(SPDF, layer = 'cfa_gulf', 'C:/temp', driver="ESRI Shapefile")
   }  
- 
- 
-
- 
- 
- 
- #Points taken from schedule XI from Atlantic Fishery Regulations, 1985 (SOR/86-21)
- #https://laws-lois.justice.gc.ca/PDF/SOR-86-21.pdf
- 
- 
+  
+  
+  
+  
+  
+  
+  #Points taken from schedule XI from Atlantic Fishery Regulations, 1985 (SOR/86-21)
+  #https://laws-lois.justice.gc.ca/PDF/SOR-86-21.pdf
+  
+  
   p1 = c(-60.00,degmin2decdeg("475000.00")) #Northern point
   #Point #3 from PART IIB / PARTIE IIB CRAB FISHING AREAS
   p2 = c(degmin2decdeg("-580900.00"), degmin2decdeg("461700.00"))
@@ -2690,7 +2988,7 @@ absolutely.in.area2 = function(area, abslon, abslat){
   pa = Polygon(are)
   paa = Polygons(list(pa), "s2")
   nens = SpatialPolygons(list(paa), 1:1)
- 
+  
   SPDF = SpatialPolygonsDataFrame(nens, data.frame(N = c("cfa_20-22(n-ens)"), row.names = c("s2")))
   if(polyredo){
     proj4string(SPDF) = CRS(latlong)
@@ -2698,16 +2996,16 @@ absolutely.in.area2 = function(area, abslon, abslat){
   }
   
   
-# 1)	      46?00'			     59?51'
-# 2)	      46?00'			     57?47'
-# 3)	      43?24' 			     54?48' THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
-# 4)	      41?05'			     57?30'
-# 5)	      45?37'			     60?31'
-# 6)	      46?00'			     59?51'
-#NOTE:	WHEN THE GEOGRAPHIC BOUNDARY OF AN AREA IS EXPRESSED IN LATITUDE AND LONGITUDE, THOSE POINT REFERENCES ARE BASED ON THE GEODESIC SYSTEM NORTH AMERICAN DATUM 1927 (NAD27).
+  # 1)	      46?00'			     59?51'
+  # 2)	      46?00'			     57?47'
+  # 3)	      43?24' 			     54?48' THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
+  # 4)	      41?05'			     57?30'
+  # 5)	      45?37'			     60?31'
+  # 6)	      46?00'			     59?51'
+  #NOTE:	WHEN THE GEOGRAPHIC BOUNDARY OF AN AREA IS EXPRESSED IN LATITUDE AND LONGITUDE, THOSE POINT REFERENCES ARE BASED ON THE GEODESIC SYSTEM NORTH AMERICAN DATUM 1927 (NAD27).
   
   
-    # Inside outside line east of 
+  # Inside outside line east of 
   # p5 = c(-59.38666666666666666666667 43.9186111111111111111116666667)	
   #p6 = c(-56.666666666666666667, 45.0833333333333333333)	
   
@@ -2716,7 +3014,7 @@ absolutely.in.area2 = function(area, abslon, abslat){
   #p3 = c(-56.40172552969,44.79510535390)
   #pmich = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
   #pmich = cbind(as.numeric(as.character(pmich$lon)), as.numeric(as.character(pmich$lat)))
- 
+  
   #pmich = pmich[which(pmich[,1] > -56.5 & pmich[,1] < -56 & pmich[,2] > 43 & pmich[,2] < 45),]
   
   #p4 = c(-56.15570315338,44.58068076985)
@@ -2728,189 +3026,189 @@ absolutely.in.area2 = function(area, abslon, abslat){
   p200 = p200[which(p200[,1] > -57.496),]
   ind = which(p200[,1] > -56.5 & p200[,1] < -56 & p200[,2] > 43)
   p200 = p200[-ind,] 
-     p6 = c(-57.5, degmin2decdeg("410500.00"))
+  p6 = c(-57.5, degmin2decdeg("410500.00"))
   p7 = c(degmin2decdeg("-603100.00"),degmin2decdeg("453700.00"))
   p8 = c(degmin2decdeg("-595100.00"), 46)
   #p2 = c(-58.516666666666666666666667,45.61666666666666666666667)
- # p3 = c(-59.11881785180857,43.67610276909335)
- # p4 = c(-63.33161397633095,42.50186912534272)
- # p5 = c(-63.33296001561555,44.33343763428088)
+  # p3 = c(-59.11881785180857,43.67610276909335)
+  # p4 = c(-63.33161397633095,42.50186912534272)
+  # p5 = c(-63.33296001561555,44.33343763428088)
   #p6 = c(-63.52502801857509,44.5005704612574)
   #p7 = c(-64, 45)
- # p7 = c(-61, 46)
-#  are = rbind(p1, p2, p3, pmich, p4, p5, p200, p6, p7, p8)
+  # p7 = c(-61, 46)
+  #  are = rbind(p1, p2, p3, pmich, p4, p5, p200, p6, p7, p8)
   are = rbind(p1, p2, p5, p200, p6, p7, p8)
   
-    pa = Polygon(are)
+  pa = Polygon(are)
   paa = Polygons(list(pa), "s3")
   twothree = SpatialPolygons(list(paa), 1:1)
   
- SPDF = SpatialPolygonsDataFrame(twothree, data.frame(N = c("cfa_23"), row.names = c("s3")))
-if(polyredo){
- proj4string(SPDF) = CRS(latlong)
- writeOGR(SPDF, layer = 'cfa23', 'C:/temp', driver="ESRI Shapefile")
-}   
-
- #Write cfa24 all so that we can divide later
- if(polyredo){
-   
-   p11 = c(degmin2decdeg("-612545.00"), degmin2decdeg("453810.00"))
-   p10 = c(degmin2decdeg("-612415.00"),    degmin2decdeg("453830.00"))
-   p9 = c(degmin2decdeg("-604832.00"), degmin2decdeg("455732.00"))
-   p8 = c(degmin2decdeg("-604732.00"), degmin2decdeg("455725.00"))
-   p6 = c(degmin2decdeg("-603100.00"), degmin2decdeg("453700.00"))
-   p7 = c(degmin2decdeg("-573000.00"), degmin2decdeg("410500.00"))
-   p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
-   p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
-   p200 = p200[which(p200[,2] < 45.2),]
-   p200 = p200[which(p200[,1] < -57.5),]
-   p200 = p200[which(p200[,1] > -70),]
-   
-   ind = which(p200[,1] > -66.21 & p200[,1] < -59 & p200[,2] > 42)
-   p200 = p200[-ind,] 
-
-   p11 = c(degmin2decdeg("-612545.00"), degmin2decdeg("453810.00"))
-   are = rbind(p11, p10, p9, p8, p6, p7, p200, p11)
-   
-   pa = Polygon(are)
-   paa = Polygons(list(pa), "s3")
-   twofourall = SpatialPolygons(list(paa), 1:1)
-   
-   SPDF = SpatialPolygonsDataFrame(twofourall, data.frame(N = c("cfa_24_all"), row.names = c("s3")))
-   
-     proj4string(SPDF) = CRS(latlong)
-     writeOGR(SPDF, layer = 'cfa24_all', 'C:/temp', driver="ESRI Shapefile")
-
-     
-      #    1.            44° 30' 00"N      63° 31' 12" W
- #     2.            44° 20' 00"N      63° 20' 00" W
- #    3.            39° 00' 00"N      63° 20' 00" W
-     
-     p1 = c(degmin2decdeg("-633112.00"), degmin2decdeg("443000.00"))
-     p2 = c(degmin2decdeg("-632000.00"),    degmin2decdeg("442000.00"))
-     p3 = c(degmin2decdeg("-632000.00"), degmin2decdeg("390000.00"))
-     p4 = c(-70, 38)
-     p5 = c(-75, 50)
-     
-     are = rbind(p1, p2, p3, p4, p5, p1)
-     
-     pa = Polygon(are)
-     paa = Polygons(list(pa), "s4")
-     twofourw = SpatialPolygons(list(paa), 1:1)
-     
-     SPDF = SpatialPolygonsDataFrame(twofourw, data.frame(N = c("cfa_24_w"), row.names = c("s4")))
-     
-     proj4string(SPDF) = CRS(latlong)
-     writeOGR(SPDF, layer = 'cfa24_W', 'C:/temp', driver="ESRI Shapefile")
-     
-   }
- 
-# #From licence conditions CFA23
-# #NAD27
-# nadlatlong = "+proj=longlat +datum=NAD27 +no_defs"
-# p1 = c(-59.849166666666666666666667,46)
-# p2 = c(-57.7991666666666666666667,46)
-# p3 = c(-54.7991666666666666666667,43.4)
-# #THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
-# p4 = c(-57.498888888888888888883333333,41.083611111111111111166666667)		
-# p5 = c(-60.5158333333333333333333333,45.616666666666666667)	
-# p6 = c(-59.849166666666666666666667,46)		
-# 
-# 
-#               are = rbind(p1, p2, p3, p4, p5, p6)
-#               pa = Polygon(are)
-#               paa = Polygons(list(pa), "s9")
-#               twothree = SpatialPolygons(list(paa), 1:1)
-#               
-#               SPDF = SpatialPolygonsDataFrame(twothree, data.frame(N = c("cfa_23_lic"), row.names = c("s9")))
-#               proj4string(SPDF) = CRS(nadlatlong)
-#               writeOGR(SPDF, layer = 'cfa23_lic', 'C:/temp', driver="ESRI Shapefile")
-#               
-#               
-# CFA 24 - EAST IS DEFINED AS THOSE PORTIONS OF CANADIAN FISHERIES WATERS BOUNDED BY RHUMB LINES (SIMILAR TO STRAIGHT LINES PLOTTED ON A NAUTICAL CHART), THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT, AND THE COASTLINE OF NOVA SCOTIA JOINING THE FOLLOWING POINTS IN THE ORDER IN WHICH THEY ARE LISTED BELOW:
-#   
-#   POINT    NORTH LATITUDE   WEST LONGITUDE
-# 
-# 1)	      45?37'			     60?31'
-# 2)	      41?05'			     57?30'	THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
-# 3)	      40?30' 			     63?20' 
-# 4)	      44?20'			     63?20'
-# 5)	      44?30'			     63?30'
-# 6)	      44?30'			     63?31.5'
-# 7)	      45?37'			     60?31'
-p1 = c(-60.51666666666666666666666666666667, 45.61666666666666666666666666666667)
-p2 = c(-57.5,    41.08333333333333333333333333333333)
-p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
-p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
-p200 = p200[which(p200[,2] < 41.2),]
-p200 = p200[which(p200[,1] < -57.5),]
-p200 = p200[which(p200[,1] > -63.3333333333333333333),]
-
-p3 = c(-63.33333333333333333333333333333333, 40.5)
-p4 = c(-63.33333333333333333333333333333333, 44.33333333333333333333333333333333)
-p5 = c(-63.5, 44.5)
-p6 = c(-63.525, 44.5)
-p7 = c(-60.51666666666666666666666666666667, 45.61666666666666666666666666666667)
-
-# 
-# p1 = c(-57.78560987011954,46.00106076110973) 
-# p2 = c(-59.85247480316924,46.00291960992756) 
-# p3 = c(-61, 46)
-# p4 = c(-60.66040620990439,45.58083805201212)
-# p5 = c(-59.11881785180857,43.67610276909335)
-# p6 = c(-56.5, 44)
-# p7 = c(-57.78560987011954,46.00106076110973) 
-are = rbind(p1, p2, p200, p3, p4, p5, p6, p7)
-pa = Polygon(are)
-paa = Polygons(list(pa), "s4")
-twofour = SpatialPolygons(list(paa), 1:1)
-
-
-SPDF = SpatialPolygonsDataFrame(twofour, data.frame(N = c("cfa_24"), row.names = c("s4")))
-# proj4string(SPDF) = CRS(latlong)
-# writeOGR(SPDF, layer = 'cfa24', 'C:/temp', driver="ESRI Shapefile")
-
-
-
-# 1. FISHING IS AUTHORIZED IN THE CRAB FISHING AREA THAT IS VALIDATED BELOW DURING THE TIME SPECIFIED IN THE LICENCE CONDITION OR UNTIL THE QUOTA IS REACHED, WHICHEVER COMES FIRST:
-#   
-#   THAT PORTION OF CRAB FISHING AREA 24 DESCRIBED AS WEST OF A STRAIGHT LINE JOINING THE FOLLOWING POINTS IN THE ORDER IN WHICH THEY APPEAR.
-# 
-# POINT	LATITUDE	LONGITUDE
-# 
-# 1.	44  30' 00""N	63  31' 12"" W
-# 2.	44  20' 00""N	63  20' 00"" W
-# 3.	39  00' 00""N	63  20' 00"" W
-
-p1 = c(-63.52, 44.5)
-p2 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
-#p3 = c(-63.33333333333333333333333333333333,39)
-p3 = c(-63.33333333333333333333333333333333, 40.5)
-p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
-p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
-p200 = p200[which(p200[,2] < 45.6),]
-p200 = p200[which(p200[,1] <  -63.3333333333333333333),]
-p200 = p200[which(p200[,1] > -68),]
-ind = which(p200[,1] > -66.213641822 & p200[,2] > 43.25)
-p200 = p200[-ind,] 
-
-
-pe = c(-63.52, 44.5)
-#   p1 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
-#   p2 =c(-63.33333333333333333333333333333333, 40.5)
-#   p3 = c(-65.8790362550903,40.0530157742342)
-#   p4 = c(-65.6997185793320,40.4513853244497)
-#   p5 = c(-67.74305555556,42.88722222201)
-# p6 = c(-67.4055058928356,43.8333320617655)
-# p7 = c(-66.9031298,43.8333306)
-#        p8 = c(-66.903129569,45.058746266)
-# 
-#   p9 = c(-65, 45.5)
-#   p10 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
-#   
-#   are = rbind(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10)
-are = rbind(p1, p2, p3, p200, pe)
-
+  SPDF = SpatialPolygonsDataFrame(twothree, data.frame(N = c("cfa_23"), row.names = c("s3")))
+  if(polyredo){
+    proj4string(SPDF) = CRS(latlong)
+    writeOGR(SPDF, layer = 'cfa23', 'C:/temp', driver="ESRI Shapefile")
+  }   
+  
+  #Write cfa24 all so that we can divide later
+  if(polyredo){
+    
+    p11 = c(degmin2decdeg("-612545.00"), degmin2decdeg("453810.00"))
+    p10 = c(degmin2decdeg("-612415.00"),    degmin2decdeg("453830.00"))
+    p9 = c(degmin2decdeg("-604832.00"), degmin2decdeg("455732.00"))
+    p8 = c(degmin2decdeg("-604732.00"), degmin2decdeg("455725.00"))
+    p6 = c(degmin2decdeg("-603100.00"), degmin2decdeg("453700.00"))
+    p7 = c(degmin2decdeg("-573000.00"), degmin2decdeg("410500.00"))
+    p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
+    p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
+    p200 = p200[which(p200[,2] < 45.2),]
+    p200 = p200[which(p200[,1] < -57.5),]
+    p200 = p200[which(p200[,1] > -70),]
+    
+    ind = which(p200[,1] > -66.21 & p200[,1] < -59 & p200[,2] > 42)
+    p200 = p200[-ind,] 
+    
+    p11 = c(degmin2decdeg("-612545.00"), degmin2decdeg("453810.00"))
+    are = rbind(p11, p10, p9, p8, p6, p7, p200, p11)
+    
+    pa = Polygon(are)
+    paa = Polygons(list(pa), "s3")
+    twofourall = SpatialPolygons(list(paa), 1:1)
+    
+    SPDF = SpatialPolygonsDataFrame(twofourall, data.frame(N = c("cfa_24_all"), row.names = c("s3")))
+    
+    proj4string(SPDF) = CRS(latlong)
+    writeOGR(SPDF, layer = 'cfa24_all', 'C:/temp', driver="ESRI Shapefile")
+    
+    
+    #    1.            44° 30' 00"N      63° 31' 12" W
+    #     2.            44° 20' 00"N      63° 20' 00" W
+    #    3.            39° 00' 00"N      63° 20' 00" W
+    
+    p1 = c(degmin2decdeg("-633112.00"), degmin2decdeg("443000.00"))
+    p2 = c(degmin2decdeg("-632000.00"),    degmin2decdeg("442000.00"))
+    p3 = c(degmin2decdeg("-632000.00"), degmin2decdeg("390000.00"))
+    p4 = c(-70, 38)
+    p5 = c(-75, 50)
+    
+    are = rbind(p1, p2, p3, p4, p5, p1)
+    
+    pa = Polygon(are)
+    paa = Polygons(list(pa), "s4")
+    twofourw = SpatialPolygons(list(paa), 1:1)
+    
+    SPDF = SpatialPolygonsDataFrame(twofourw, data.frame(N = c("cfa_24_w"), row.names = c("s4")))
+    
+    proj4string(SPDF) = CRS(latlong)
+    writeOGR(SPDF, layer = 'cfa24_W', 'C:/temp', driver="ESRI Shapefile")
+    
+  }
+  
+  # #From licence conditions CFA23
+  # #NAD27
+  # nadlatlong = "+proj=longlat +datum=NAD27 +no_defs"
+  # p1 = c(-59.849166666666666666666667,46)
+  # p2 = c(-57.7991666666666666666667,46)
+  # p3 = c(-54.7991666666666666666667,43.4)
+  # #THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
+  # p4 = c(-57.498888888888888888883333333,41.083611111111111111166666667)		
+  # p5 = c(-60.5158333333333333333333333,45.616666666666666667)	
+  # p6 = c(-59.849166666666666666666667,46)		
+  # 
+  # 
+  #               are = rbind(p1, p2, p3, p4, p5, p6)
+  #               pa = Polygon(are)
+  #               paa = Polygons(list(pa), "s9")
+  #               twothree = SpatialPolygons(list(paa), 1:1)
+  #               
+  #               SPDF = SpatialPolygonsDataFrame(twothree, data.frame(N = c("cfa_23_lic"), row.names = c("s9")))
+  #               proj4string(SPDF) = CRS(nadlatlong)
+  #               writeOGR(SPDF, layer = 'cfa23_lic', 'C:/temp', driver="ESRI Shapefile")
+  #               
+  #               
+  # CFA 24 - EAST IS DEFINED AS THOSE PORTIONS OF CANADIAN FISHERIES WATERS BOUNDED BY RHUMB LINES (SIMILAR TO STRAIGHT LINES PLOTTED ON A NAUTICAL CHART), THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT, AND THE COASTLINE OF NOVA SCOTIA JOINING THE FOLLOWING POINTS IN THE ORDER IN WHICH THEY ARE LISTED BELOW:
+  #   
+  #   POINT    NORTH LATITUDE   WEST LONGITUDE
+  # 
+  # 1)	      45?37'			     60?31'
+  # 2)	      41?05'			     57?30'	THENCE ALONG THE BOUNDARY OF THE CANADIAN 200 MILE LIMIT TO
+  # 3)	      40?30' 			     63?20' 
+  # 4)	      44?20'			     63?20'
+  # 5)	      44?30'			     63?30'
+  # 6)	      44?30'			     63?31.5'
+  # 7)	      45?37'			     60?31'
+  p1 = c(-60.51666666666666666666666666666667, 45.61666666666666666666666666666667)
+  p2 = c(-57.5,    41.08333333333333333333333333333333)
+  p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
+  p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
+  p200 = p200[which(p200[,2] < 41.2),]
+  p200 = p200[which(p200[,1] < -57.5),]
+  p200 = p200[which(p200[,1] > -63.3333333333333333333),]
+  
+  p3 = c(-63.33333333333333333333333333333333, 40.5)
+  p4 = c(-63.33333333333333333333333333333333, 44.33333333333333333333333333333333)
+  p5 = c(-63.5, 44.5)
+  p6 = c(-63.525, 44.5)
+  p7 = c(-60.51666666666666666666666666666667, 45.61666666666666666666666666666667)
+  
+  # 
+  # p1 = c(-57.78560987011954,46.00106076110973) 
+  # p2 = c(-59.85247480316924,46.00291960992756) 
+  # p3 = c(-61, 46)
+  # p4 = c(-60.66040620990439,45.58083805201212)
+  # p5 = c(-59.11881785180857,43.67610276909335)
+  # p6 = c(-56.5, 44)
+  # p7 = c(-57.78560987011954,46.00106076110973) 
+  are = rbind(p1, p2, p200, p3, p4, p5, p6, p7)
+  pa = Polygon(are)
+  paa = Polygons(list(pa), "s4")
+  twofour = SpatialPolygons(list(paa), 1:1)
+  
+  
+  SPDF = SpatialPolygonsDataFrame(twofour, data.frame(N = c("cfa_24"), row.names = c("s4")))
+  # proj4string(SPDF) = CRS(latlong)
+  # writeOGR(SPDF, layer = 'cfa24', 'C:/temp', driver="ESRI Shapefile")
+  
+  
+  
+  # 1. FISHING IS AUTHORIZED IN THE CRAB FISHING AREA THAT IS VALIDATED BELOW DURING THE TIME SPECIFIED IN THE LICENCE CONDITION OR UNTIL THE QUOTA IS REACHED, WHICHEVER COMES FIRST:
+  #   
+  #   THAT PORTION OF CRAB FISHING AREA 24 DESCRIBED AS WEST OF A STRAIGHT LINE JOINING THE FOLLOWING POINTS IN THE ORDER IN WHICH THEY APPEAR.
+  # 
+  # POINT	LATITUDE	LONGITUDE
+  # 
+  # 1.	44  30' 00""N	63  31' 12"" W
+  # 2.	44  20' 00""N	63  20' 00"" W
+  # 3.	39  00' 00""N	63  20' 00"" W
+  
+  p1 = c(-63.52, 44.5)
+  p2 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
+  #p3 = c(-63.33333333333333333333333333333333,39)
+  p3 = c(-63.33333333333333333333333333333333, 40.5)
+  p200 = read.csv(file.path(bio.datadirectory, "bio.snowcrab", "maps", "200mile1.csv"))
+  p200 = cbind(as.numeric(as.character(p200$lon)), as.numeric(as.character(p200$lat)))
+  p200 = p200[which(p200[,2] < 45.6),]
+  p200 = p200[which(p200[,1] <  -63.3333333333333333333),]
+  p200 = p200[which(p200[,1] > -68),]
+  ind = which(p200[,1] > -66.213641822 & p200[,2] > 43.25)
+  p200 = p200[-ind,] 
+  
+  
+  pe = c(-63.52, 44.5)
+  #   p1 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
+  #   p2 =c(-63.33333333333333333333333333333333, 40.5)
+  #   p3 = c(-65.8790362550903,40.0530157742342)
+  #   p4 = c(-65.6997185793320,40.4513853244497)
+  #   p5 = c(-67.74305555556,42.88722222201)
+  # p6 = c(-67.4055058928356,43.8333320617655)
+  # p7 = c(-66.9031298,43.8333306)
+  #        p8 = c(-66.903129569,45.058746266)
+  # 
+  #   p9 = c(-65, 45.5)
+  #   p10 = c(-63.33333333333333333333333333333333,44.33333333333333333333333333333333)
+  #   
+  #   are = rbind(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10)
+  are = rbind(p1, p2, p3, p200, pe)
+  
   pa = Polygon(are)
   paa = Polygons(list(pa), "s5")
   xxxx = SpatialPolygons(list(paa), 1:1)
@@ -2953,76 +3251,76 @@ are = rbind(p1, p2, p3, p200, pe)
   twothreez = SpatialPolygons(list(paa), 1:1)
   
   
-
+  
   
   bol = NULL
   for(i in 1:length(abslon)){
-  pb = SpatialPoints(rbind(c(as.numeric(abslon[i]), as.numeric(abslat[i]))))
-  
-  
-  
-  # all.holes,44,45.5,61.4,58
-  bo = FALSE
-  if(area == "cfa23"){
-    if(gContains(twothree, pb)) bo = TRUE
-  }
-  
-  if(area == "cfa23zoom"){
-    if(gContains(twothreez, pb)) bo = TRUE
-  }
-  if(area == "cfa24"){
-    if(gContains(twofour, pb)) bo = TRUE
-  }
-  if(area == "cfa24zoom"){
-    if(gContains(twofourz, pb)) bo = TRUE
-  }
-  if(area == "cfa4x" | area == "unknown"){
-    if(gContains(xxxx, pb)){
-      bo = TRUE
-      are[i] = "CFA-4X"
+    pb = SpatialPoints(rbind(c(as.numeric(abslon[i]), as.numeric(abslat[i]))))
+    
+    
+    
+    # all.holes,44,45.5,61.4,58
+    bo = FALSE
+    if(area == "cfa23"){
+      if(gContains(twothree, pb)) bo = TRUE
+    }
+    
+    if(area == "cfa23zoom"){
+      if(gContains(twothreez, pb)) bo = TRUE
+    }
+    if(area == "cfa24"){
+      if(gContains(twofour, pb)) bo = TRUE
+    }
+    if(area == "cfa24zoom"){
+      if(gContains(twofourz, pb)) bo = TRUE
+    }
+    if(area == "cfa4x" | area == "unknown"){
+      if(gContains(xxxx, pb)){
+        bo = TRUE
+        are[i] = "CFA-4X"
+        
+      }
+    }
+    if(area == "nens" | area == "unknown"){
       
+      if(gContains(nens, pb)){
+        bo = TRUE
+        are[i] = "NENS"
       }
-  }
-  if(area == "nens" | area == "unknown"){
+    }  
+    if(area == "nens_gulf"){
+      if(gContains(nens, pb) | gContains(gulf, pb)) bo = TRUE
+    }  
     
-    if(gContains(nens, pb)){
-      bo = TRUE
-      are[i] = "NENS"
+    
+    if(area == "sens" | area == "unknown"){
+      
+      if(gContains(twofour, pb) | gContains(twothree, pb)){
+        are[i] = "SENS"
+        bo = TRUE
       }
-  }  
-  if(area == "nens_gulf"){
-    if(gContains(nens, pb) | gContains(gulf, pb)) bo = TRUE
-  }  
-  
-  
-  if(area == "sens" | area == "unknown"){
+    } 
+    if(area == "gulf" | area == "unknown"){
+      
+      if(gContains(gulf, pb)){
+        bo = TRUE
+        are[i] = "GULF" 
+      }
+    } 
+    if(area == "all" | area == "ens"){
+      if(gContains(twofour, pb) | gContains(twothree, pb) | gContains(xxxx, pb) | gContains(nens, pb)) bo = TRUE
+    }
+    if(area == "allandgulf"){
+      if(gContains(twofour, pb) | gContains(twothree, pb) | gContains(xxxx, pb) | gContains(nens, pb) | gContains(gulf, pb)) bo = TRUE
+    }
+    if(area == "all.holes"){
+      if(gContains(holes, pb)) bo = TRUE
+    }  
+    bol = c(bol, bo)
     
-    if(gContains(twofour, pb) | gContains(twothree, pb)){
-      are[i] = "SENS"
-       bo = TRUE
-    }
-  } 
-  if(area == "gulf" | area == "unknown"){
     
-    if(gContains(gulf, pb)){
-      bo = TRUE
-      are[i] = "GULF" 
-    }
-  } 
-  if(area == "all" | area == "ens"){
-    if(gContains(twofour, pb) | gContains(twothree, pb) | gContains(xxxx, pb) | gContains(nens, pb)) bo = TRUE
+    
   }
-  if(area == "allandgulf"){
-    if(gContains(twofour, pb) | gContains(twothree, pb) | gContains(xxxx, pb) | gContains(nens, pb) | gContains(gulf, pb)) bo = TRUE
-  }
-  if(area == "all.holes"){
-    if(gContains(holes, pb)) bo = TRUE
-  }  
-  bol = c(bol, bo)
-
-  
-  
-    }
   
   if(area == "unknown"){
     return(are)

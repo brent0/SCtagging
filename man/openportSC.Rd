@@ -5,7 +5,7 @@
 \title{openportSC}
 \usage{
 openportSC(user = enssnowc.user, password = enssnowc.password,
-  host = "enssnowcrab.com", local.port = NULL, remote.port = "3306")
+  host = "box5730.bluehost.com", local.port = NULL, remote.port = "3306")
 }
 \arguments{
 \item{user}{Database username}

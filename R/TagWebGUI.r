@@ -583,10 +583,10 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
       str = paste(str,"</br>&nbsp&nbsp&nbsp	Number of these tags returned: &nbsp", sep="")
       str = paste(str,mess$ret, sep="")
       str = paste(str,"</br>&nbsp&nbsp&nbsp	Number of crab captured more than once:&nbsp", sep="")
-      x = as.numeric(mess$ret)
-      y =  as.numeric(mess$retuni)
-      x = x - y
-      str = paste(str,x)
+      tx = as.numeric(mess$ret)
+      ty =  as.numeric(mess$retuni)
+      tx = tx - ty
+      str = paste(str,tx)
       str = paste(str,"</br>Data from these released crab with captures that occured more than 10 days from tag site:&nbsp", sep="")
       str = paste(str,"</br>&nbsp&nbsp&nbsp	Average movement (km):&nbsp", sep="")
       str = paste(str,mess$mov, sep="")
@@ -601,7 +601,10 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
       
     }
     
-    
+    tplot = plottags(are, y)
+    str = paste(str, "<img 
+                src='", tplot, "' height='87'
+                width='100' />", sep = "")
     
     return(str)
     

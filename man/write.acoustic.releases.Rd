@@ -4,7 +4,7 @@
 \alias{write.acoustic.releases}
 \title{write.acoustic.releases}
 \usage{
-write.acoustic.releases(dir = file.path("D:", "OTN", "releases"))
+write.acoustic.releases(dir = file.path("E:", "OTN", "releases"))
 }
 \value{
 dataframe
