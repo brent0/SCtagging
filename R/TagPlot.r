@@ -1,5 +1,40 @@
 
-
+addRaster= function(path, ncel = NULL,  transcol = NULL, transamt = NULL, fade = 1, quality = 1){
+  r <- raster(path)
+  
+  if(is.null(ncel)) ncel = ncell(r)*quality 
+  
+  t_amt =  as.hexmode(round(fade*255))
+  if(nchar(t_amt) == 1) t_amt = paste("0", t_amt, sep = "")
+  r@legend@colortable = paste(r@legend@colortable, t_amt, sep = "" )
+  r@legend@colortable = toupper(r@legend@colortable)
+  
+  hex = c("#","0","1","2","3","4","5","6","7","8","9","A", "B", "C", "D", "E", "F")
+  if(!is.null(transcol)){
+    if(length(transcol) == length(transamt)){
+      ctab = r@legend@colortable
+      for(k in 1:length(transcol)){
+        ind = ind2 = 0
+        t_amt =  as.hexmode(round(transamt[k]*255))
+        if(nchar(t_amt) == 1) t_amt = paste("0", t_amt, sep = "")
+        t_col = transcol[k]
+        if(t_col %in% colors())
+          ind = which(col2rgb(ctab)[1,] == col2rgb( t_col)[1] & col2rgb(ctab)[2,] == col2rgb( t_col)[2] & col2rgb(ctab)[3,] == col2rgb( t_col)[3])
+        if(!FALSE %in% (unlist(strsplit(toupper(rgb), "")) %in% hex))
+          ind2 = which(substr(ctab, 0, 7) == substr(t_col, 0, 7))
+        if(length(ind) == 0 & length(ind2) == 0 ) print("Incorrect transparent color format, Or color is not in the chart color table")
+        
+        if(length(ind)>0) substr(r@legend@colortable[ind], 8, 9) = as.character(t_amt)
+        if(length(ind2)>0) substr(r@legend@colortable[ind2], 8, 9) = as.character(t_amt)
+      }
+    }
+    else{ print("The number of transparent colors must equal the number of transparent amounts")}
+  }
+  
+  r@legend@colortable
+  plot(r, add = T, maxpixels = ncel)
+  
+}
 #' @title  plottags
 #' @description  Function that creates movement charts
 #' @import stringr PBSmapping chron
@@ -170,6 +205,97 @@ plottags = function(are, years){
   
   
 }
+
+#' @description  Function that plots raster data
+#' @import raster PBSmapping rgdal
+#' @param path The location of the raster file
+#' @param xlab The x axis label
+#' @param ylab The y axis label
+#' @param transcol The color to make transparent
+#' @param transamt The amount of transparency 0.0 to 1.0
+#' @param fade The amount to fade all colors 0.0 to 1.0
+#' @param axes Boolean, True to display axes
+#' @param tck ength of tick mark as fraction of plotting region (negative number is outside graph, positive number is inside, 0 suppresses ticks, 1 creates gridlines) default is -0.01
+#' @param tckLab Boolean vector (length 1 or 2); if TRUE, label the major tick marks. If given a two-element vector, the first element describes the tick marks on the x-axis and the second element describes those on the y-axis.
+#' @param cellcount Number of cells to plot, default is to read from raster file
+#' @param xlim numeric vector of lower and upper x axis limits
+#' @param ylim xlim numeric vector of lower and upper y axis limits
+#' @param quality quality of the raster from 0 to 1
+#' @export
+plotRaster= function(path, xlab =NULL, ylab=NULL, transcol = NULL, transamt = NULL, fade = 1, axes=F, tck= "",
+                     tckLab=F, cellcount = NULL, xlim = NULL, ylim = NULL, quality = 1, ...){
+  
+  x <- GDAL.open(path)
+  if(length(dim(x)) == 3){
+    dx <- RGB2PCT(x, band=1:dim(x)[3])
+    writeGDAL(fname = sub(".", "_PCT.", path), dx)
+    GDAL.close(dx)
+    r = raster(sub(".", "_PCT.", path))
+  }
+  else{
+    r = raster(path)
+  }
+  GDAL.close(x)
+  
+  if(is.null(cellcount)) cellcount = ncell(r)*quality
+  if(is.null(xlim) & is.null(ylim)){
+    xlim = c(xmin(extent(r)), xmax(extent(r)))
+    ylim = c(ymin(extent(r)), ymax(extent(r)))
+  }
+  
+  if(grepl("longlat", projection(r))) labelProjection = "LL"
+  else labelProjection = "UTM"
+  plt = c(.2, .92, .2, .94)
+  par(...)
+  par(cex =1)
+
+  # save settings in 'options'
+  #options(map.xlim = xlim);
+ # options(map.ylim = ylim);
+ # options(map.projection = labelProjection);
+  
+  # create plot region
+  .initPlotRegion(projection=labelProjection, xlim=xlim, ylim=ylim, plt=plt);
+  
+  
+  t_amt =  as.hexmode(round(fade*255))
+  if(nchar(t_amt) == 1) t_amt = paste("0", t_amt, sep = "")
+  r@legend@colortable = paste(r@legend@colortable, t_amt, sep = "" )
+  r@legend@colortable = toupper(r@legend@colortable)
+  hex = c("#","0","1","2","3","4","5","6","7","8","9","A", "B", "C", "D", "E", "F")
+  if(!is.null(transcol)){
+    if(length(transcol) == length(transamt)){
+      ctab = r@legend@colortable
+      for(k in 1:length(transcol)){
+        t_amt =  as.hexmode(round(transamt[k]*255))
+        if(nchar(t_amt) == 1) t_amt = paste("0", t_amt, sep = "")
+        t_col = transcol[k]
+        if(t_col %in% colors())
+          ind = which(col2rgb(ctab)[1,] == col2rgb(t_col)[1] & col2rgb(ctab)[2,] == col2rgb( t_col)[2] & col2rgb(ctab)[3,] == col2rgb( t_col)[3])
+        if(!FALSE %in% (unlist(strsplit(toupper(col2rgb(t_col)), "")) %in% hex))
+          ind2 = which(substr(ctab, 0, 7) == substr(t_col, 0, 7))
+        if(length(ind) == 0 & length(ind2) == 0 ) print("Incorrect transparent color format")
+        
+        if(length(ind)>0) substr(r@legend@colortable[ind], 8, 9) = as.character(t_amt)
+        if(length(ind2)>0) substr(r@legend@colortable[ind2], 8, 9) = as.character(t_amt)
+      }
+    }
+    else{ print("The number of transparent colors must equal the number of transparent amounts")}
+  }
+  
+  plot(r, maxpixels = cellcount, add = T, ...)
+  
+  if (axes) {
+    .addAxis(xlim = xlim, ylim = ylim, tckLab = tckLab, tck = tck,
+             tckMinor = 0.5 * tck, ...);
+    
+  }
+  
+  # labels must go after axis
+  .addLabels(projection = labelProjection, xlab = xlab, ylab = ylab, ...);
+
+}
+
 
 plotsamples = function(are, years, xlim, ylim){
   svg(filename = paste("output/tagplots/outsamples_", are, "_", years[1], "-", years[length(years)], ".svg", sep = ""), width = 9, height = 9)

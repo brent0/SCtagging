@@ -445,7 +445,8 @@ ret_ent <- function(ddata){
   
   ret = 2
   if(rc2 == "choice-1")ret = 1
-  
+  if(rc2 == "choice-2")ret = 2
+  if(rc2 == "choice-3")ret = 3
   
   add = unlist(str_split(add, ","))[1]
   
@@ -828,7 +829,7 @@ tagReturned_Applied = function(are, years, rm.gulf = T){
     
     
     if(nr == 0) return(z)
-    names(da) = c("PID","capdat", "CID", "km", "caparea","caplat", "caplong",  "capyear", "triparea", "sampyear", "sampdate", "samplat", "samplon")
+    names(da) = c("PID","capdat", "CID", "km", "caparea","caplat", "caplong",  "capyear", "relcode", "triparea", "sampyear", "sampdate", "samplat", "samplon")
     
     ii = absolutely.in.area2(are, da$samplon, da$samplat)
     #jj = absolutely.in.area2(are, da$caplon, da$caplat)
@@ -949,7 +950,7 @@ tagReturned_Applied = function(are, years, rm.gulf = T){
   }
 alldata = function(are, years){
     are = "all"
-    years = 2004:2017
+    years = 2004:2019
     y = get.capturedatacc()
     x = get.paths()
     names(x) = c("PID", "plon", "plat", "capdate", "kms")

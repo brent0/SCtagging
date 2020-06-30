@@ -247,6 +247,19 @@ write.acoustic.detections = function(dir = file.path("E:", "OTN", "detections"))
   if(length(ind) >0){
     dftowrite = dftowrite[-ind,]
   }
+  ind = which(dftowrite$local_area == "Malpeque Bay")
+  if(length(ind)>0)
+    dftowrite = dftowrite[-ind,]
+  ind = which(dftowrite$local_area == "Various locations")
+  if(length(ind)>0)
+    dftowrite = dftowrite[-ind,]
+  ind = which(dftowrite$local_area == "Saint John River")
+  if(length(ind)>0)
+    dftowrite = dftowrite[-ind,]
+  ind = which(dftowrite$local_area == "Navy Island")
+  if(length(ind)>0)
+    dftowrite = dftowrite[-ind,]
+  
   # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   respat =  get.acoustic.detections()
   ind  = which(!paste(dftowrite$CATALOGNUMBER, dftowrite$DATECOLLECTED, sep = ".") %in% paste(respat$CATALOGNUMBER, respat$DATECOLLECTED, sep = "."))
@@ -292,7 +305,7 @@ das = split(da, da$spliton, drop = T)
 for(i in 1:length(das)){
   sub = data.frame(das[i])
   names(sub) = na
-  
+  print(sub$spliton[1])
   prevchron = NULL
 
   for(k in 1:nrow(sub)){
@@ -310,8 +323,7 @@ for(i in 1:length(das)){
       newent$etime = curchron
     }
     else{
-      print(prevchron)
-      print(curchron)
+   
       if(curchron - prevchron > hours(hours.thres)){
         newent$TimeSpanEnd = sub$TimeStamp[k-1]
         newent$etime = prevchron
@@ -337,15 +349,16 @@ for(i in 1:length(das)){
 }
 return(da2)
 }
-#' @title  write.acoustic.detections
+#' @title  write.acoustic.paths
 #' @description  Write calculated path data to Oracle Database
-#' @import ROracle geosphere PBSmapping raster
+#' @import ROracle geosphere PBSmapping raster gdistance lubridate
 #' @return dataframe
 #' @export
-write.accoustic.paths = function(x, rel){
-  x = get.acoustic.detections()
+write.accoustic.paths = function(){
+ # x = get.acoustic.detections()
+  x = compress.detections()
   rel = get.acoustic.releases()
-  statsframe = NULL
+ 
   raster.path = file.path("E:", "maps", "depthraster2.tif") #meters
   neighborhood = 16
   type = "random.walk"      
@@ -365,13 +378,13 @@ write.accoustic.paths = function(x, rel){
     trans <- geoCorrection(tr, type = "c", scl=FALSE)
   }
   
+  statsframe = NULL
+  pathframe = NULL
   
-  x$longitude = as.numeric(x$longitude)
-  x$latitude = as.numeric(x$latitude)
   da2 = NULL
-  x$spliton = paste(as.character(x$yearcollected), as.character(x$julianday), sep="")
+  x$spliton = paste(as.character(x$YEARCOLLECTED), as.character(x$JULIANDAY), sep="")
   na = names(x)
-  das = split(x, x$catalognumber, drop = T)
+  das = split(x, x$CATALOGNUMBER, drop = T)
   
   for(i in 1:length(das)){
     sub = data.frame(das[i])
@@ -379,26 +392,26 @@ write.accoustic.paths = function(x, rel){
     
     
     
-    da2 = rbind(da2, sub[which(sub$receiver == "release"),][1,])
-    relgrpind = which(as.character(sub$receiver) == "release")
+    da2 = rbind(da2, sub[which(sub$RECEIVER == "release"),][1,])
+    relgrpind = which(as.character(sub$RECEIVER) == "release")
     sub = sub[-relgrpind,]
     day = split(sub, sub$spliton, drop = T)
     for(j in 1:length(day)){
       dsub = data.frame(day[j])
       if(nrow(dsub) > 0){
         names(dsub) = na
-        dsub$longitude = mean(dsub$longitude)
-        dsub$latitude = mean(dsub$latitude)
+        dsub$LONGITUDE = mean(dsub$LONGITUDE)
+        dsub$LATITUDE = mean(dsub$LATITUDE)
         da2 = rbind(da2, dsub[1,])
       }
     }
     
   }
   
-  da2$TimeStamp = ymd(da2$TimeStamp)
+  #da2$TimeStamp = ymd(da2$TimeStamp)
   da2 = da2[order(da2$TimeStamp),]
   pana = names(da2)
-  pa = split(da2, da2$catalognumber, drop = T)
+  pa = split(da2, da2$CATALOGNUMBER, drop = T)
   
   for(j in 1:length(pa)){ 
     npa = data.frame(pa[j])
@@ -408,8 +421,8 @@ write.accoustic.paths = function(x, rel){
     twri = NULL
     if(nrow(npa)>1){
       for(i in 2:nrow(npa)){  
-        start <- c(as.numeric(npa$longitude[i-1]), as.numeric(npa$latitude[i-1]))
-        end <- c(as.numeric(npa$longitude[i]), as.numeric(npa$latitude[i]))
+        start <- c(as.numeric(npa$LONGITUDE[i-1]), as.numeric(npa$LATITUDE[i-1]))
+        end <- c(as.numeric(npa$LONGITUDE[i]), as.numeric(npa$LATITUDE[i]))
         days <-  npa$TimeStamp[i] - npa$TimeStamp[i-1]
         if(abs(start[1] - end[1]) < res(trans)[1] && abs(start[2] - end[2]) < res(trans)[1] || is.na(cellFromXY(r, start)) || is.na(cellFromXY(r, end))){
           AtoB = rbind(start, end)
@@ -450,19 +463,29 @@ write.accoustic.paths = function(x, rel){
         
         tpoly = as.PolySet(cor, projection = "LL")
         leng = calcLength (tpoly, rollup = 3, close = FALSE) #km    
-        
+        cor$pid = npa$CATALOGNUMBER[1]
+        cor$cid = i-1
+        cor$pos = cor$POS
         cor$lat = cor$Y
         cor$lon = cor$X
-        cor$pid = cor$PID
-        cor$pos = cor$POS
-        style = rel$styleUrl[which(rel$ANIMAL_ID == gsub("ZSC-" ,"", npa$catalognumber[1]))]
-        style = sub("rel", "line", style)
-        pdes  = paste("<![CDATA[ </br>Distance: ", as.character(leng$length), "km</br> days: ",  days,"]]>", sep = "")
-        print(pdes)
-        print(cor)
-        statsframe = rbind(statsframe,c(npa$catalognumber[1], as.character(days), leng))  
-        mykml$getFolder("Detections")$getFolder("Paths")$addFolder(fid = as.character(npa$catalognumber[1]), name = as.character(npa$catalognumber[1]))
-        mykml$getFolder("Detections")$getFolder("Paths")$getFolder(as.character(npa$catalognumber[1]))$addLineString(cor,  description = pdes,  styleUrl = style)
+ 
+      
+        cor$Y = NULL
+        cor$X = NULL
+        cor$PID = NULL
+        cor$POS = NULL
+        
+          #  style = rel$styleUrl[which(rel$ANIMAL_ID == gsub("ZSC-" ,"", npa$catalognumber[1]))]
+       # style = sub("rel", "line", style)
+      #  pdes  = paste("<![CDATA[ </br>Distance: ", as.character(leng$length), "km</br> days: ",  days,"]]>", sep = "")
+        #print(pdes)
+   
+        statsframe = rbind(statsframe,cbind(npa$CATALOGNUMBER[1], as.character(i-1), as.character(npa$TimeStamp[i-1]), as.character(npa$TimeStamp[i]), leng$length))  
+      pathframe = rbind(pathframe, cor)  
+      
+        
+         # mykml$getFolder("Detections")$getFolder("Paths")$addFolder(fid = as.character(npa$catalognumber[1]), name = as.character(npa$catalognumber[1]))
+        #mykml$getFolder("Detections")$getFolder("Paths")$getFolder(as.character(npa$catalognumber[1]))$addLineString(cor,  description = pdes,  styleUrl = style)
         #mykml$getFolder("Detections")$getFolder(as.character(npa$catalognumber[1]))$getFolder("path")$addLineString(cor,  styleUrl = style)
         #   mykml$getFolder("Detections")$getFolder(as.character(npa$catalognumber[1]))$addFolder(fid = "path", name = "path")
         #   
@@ -471,5 +494,136 @@ write.accoustic.paths = function(x, rel){
       }
     }
   }
-  return(statsframe)
+  pfr = as.data.frame(pathframe)
+  sfr = as.data.frame(statsframe)
+  names(sfr) = c("PID", "CID", "SDATE", "EDATE", "DIST")
+  names(pfr) = c("PID", "CID", "POS", "LAT", "LONG")
+  drv <- DBI::dbDriver("Oracle")
+  con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+    dbWriteTable(con,"SCT_ACCOUSTIC_PATHS", pfr, overwrite = T)
+    dbWriteTable(con,"SCT_ACCOUSTIC_PATH", sfr, overwrite = T)
+
+  }
+MCsubdetectionsOTN = function(quality = 1){
+  require("chron")
+  q = quality
+  direct = "C://project"
+  
+  
+  
+  # addRaster(file.path(direct,"mapping", "maps","Raster", "bathyWGS_PCT.tif"), quality = 1)
+  
+  
+  
+  dir = file.path(direct,"OTN", "detections")
+  fnames = list.files(dir)
+  data = NULL
+  for(i in 1 : length(fnames)){
+    if(grepl(".csv", fnames[i])){
+      datasub = read.csv(file.path(dir, fnames[i]))
+      data = rbind(data, datasub)
+    }
+  }
+  dd = as.character(data$datecollected)
+  
+  d = strsplit(dd, " ")
+  dd = matrix(unlist(d), ncol=2, byrow=TRUE)[,1] 
+  dt = matrix(unlist(d), ncol=2, byrow=TRUE)[,2]
+  
+  #dt = unlist(strsplit(dd, " "))[2]
+  #  data = data[order(as.Date(data$datecollected, format="%Y-%m-%d hh:mm:ss")),]    
+  data$datecollected = chron(dd, dt, format=c(dates="Y-m-d", times = "h:m:s"))
+  data = data[order(data$datecollected),]
+  
+  
+  data$PID = as.character(data$catalognumber)
+  data$PID = gsub("ZSC-OTN", "", data$PID)
+  data$PID = as.numeric(data$PID)
+  
+  data$X = as.numeric(as.character(data$longitude))
+  data$Y = as.numeric(as.character(data$latitude))
+  
+  da = unique(data$PID)
+  for(k in 1:length(da)){
+    dat = data[which(data$PID == da[k]),]
+    
+    if(nrow(dat)>1){
+      
+      dat$POS = 1:nrow(dat)
+      
+      xlim = c(min(dat$X)-.10, max(dat$X)+.10)
+      ylim = c(min(dat$Y)-.10, max(dat$Y)+.10)
+      plotRaster( file.path(direct,"mapping", "maps","Charts", "801_LL_WGS84_PCT.tif"),
+                  xlab="Longitude", main = paste("OTN Detections: ",dat$catalognumber[1], sep=""), ylab="Latitude", outer = T, axes=T, tck=0,
+                  fade = .5, tckLab=F, xlim = xlim, ylim = ylim, quality = 1, cellcount = NULL)
+      
+      
+      addlinesSCAREA(lwd = 1)
+      addMPA()
+      
+      
+      setdata = as.PolySet(data.frame(dat), projection = "LL")
+      addLines(setdata, lwd = 1*q, col = "blue", arrows = T, length = .1)
+      dat$label = as.character(dat$datecollected)
+      dat$PID = 1:nrow(dat)
+      ddata = as.PolyData(data.frame(dat), projection = "LL")
+      addLabels(ddata, font = .5, cex = 1*q, col = "black")
+      addEmera()
+      addDivisions(xlim, ylim)
+      degAxis(1, lwd = 1*q)
+      degAxis(2, lwd = 1*q)
+      
+    }
+    
+  }
+  
+}
+OTNreport = function(){
+  direct = "C://project"
+  
+  fn = file.path(direct, "OTN","detections2015.pdf")
+  
+  pdf(file = fn)
+  
+  MCdetectionsOTN(quality = 1)
+  MCsubdetectionsOTN(quality = 1)
+  plottags(are = "nens_gulf", years = "2009,2010,2011,2012,2013", cex.main = .5)
+  plottagsEMERA(are = "nens_gulf", years = "2009,2010,2011,2012,2013,2014", quality = .2)
+  dev.off()
+}
+stats = function(area, years){
+  
+  data = plottags(area, years, shortpath = T, plot = F)
+  names(data) = c("id", "first_dis", "tot_dis", "first_days", "tot_days")
+  
+  subdata = data[which(as.numeric(as.character(data$first_days)) > 10),]
+  subdata = subdata[which(as.numeric(as.character(subdata$first_dis)) > 0),]
+  print(   paste("Mean displacement to first capture: ", mean(as.numeric(as.character(subdata$first_dis)))))
+  
+  
+  print(paste("Max displacement to first capture: ", max(as.numeric(as.character(subdata$first_dis)))))
+  print(paste("Max displacement to last capture: ", max(as.numeric(as.character(data$tot_dis)))))
+  
+  print(paste("Mean days to first capture: ", mean(as.numeric(as.character(subdata$first_days)))))
+  print(paste("Max days to first capture: ", max(as.numeric(as.character(subdata$first_days)))))
+  print(paste("Max days to last capture: ", max(as.numeric(as.character(data$tot_days)))))
+  
+  kmm = sum(as.numeric(as.character(subdata$tot_dis)))/sum(as.numeric(as.character(subdata$tot_days)))
+  kmm = (kmm*365.26)/12
+  print(paste("km/month: ", kmm ))
+  
+  
+  
+  pdf("distances.pdf")
+  hist(as.numeric(as.character(subdata$first_dis)),breaks=100, col="red",main="Distances Travelled (Shortest Path)",xlab="Distance(km)")
+  dev.off()
+  pdf("days.pdf")
+  hist(as.numeric(as.character(subdata$tot_days)),main="Days To Last Known Capture",xlab="Time(days)")
+  dev.off()
+  pdf("tofirstdays.pdf")
+  hist(as.numeric(as.character(subdata$first_days)),breaks=100, col="red", main="Days To First Capture",xlab="Time(days)")
+  dev.off()
+  
+  return(data)
+  
 }
