@@ -248,11 +248,11 @@ plotRaster= function(path, xlab =NULL, ylab=NULL, transcol = NULL, transamt = NU
   plt = c(.2, .92, .2, .94)
   par(...)
   par(cex =1)
-
+  
   # save settings in 'options'
   #options(map.xlim = xlim);
- # options(map.ylim = ylim);
- # options(map.projection = labelProjection);
+  # options(map.ylim = ylim);
+  # options(map.projection = labelProjection);
   
   # create plot region
   .initPlotRegion(projection=labelProjection, xlim=xlim, ylim=ylim, plt=plt);
@@ -293,7 +293,7 @@ plotRaster= function(path, xlab =NULL, ylab=NULL, transcol = NULL, transamt = NU
   
   # labels must go after axis
   .addLabels(projection = labelProjection, xlab = xlab, ylab = ylab, ...);
-
+  
 }
 
 
