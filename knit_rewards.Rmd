@@ -1,0 +1,75 @@
+---
+output: 
+  pdf_document: 
+    fig_height: 6
+    keep_tex: yes
+    latex_engine: xelatex
+sansfont: Calibri
+header-includes:
+ \usepackage{float}
+ \usepackage{tabto}
+ \usepackage{geometry}
+ \usepackage{mathptmx}
+ \usepackage{anyfontsize}
+ \usepackage{t1enc}
+geometry: margin=.5cm
+
+---
+
+```{r label, echo=FALSE, error=FALSE, fig.height=6, fig.width=6, message=FALSE, warning=FALSE, results='asis'}
+  perlist = SCtagging::generate.reward.data()
+  for(i in 1:length(perlist)){
+    cat(' \\fontsize{15}{15} \\selectfont ')
+    cat(perlist[[i]]$addresslabel)
+    cat(" \\par  ")
+    
+    add = perlist[[i]]$data
+    add = add[which(add$NAME == perlist[[i]]$name)[1],]
+ 
+    cat(' \\fontsize{20}{20} \\setlength{\\leftskip}{8cm} \\selectfont  ')
+    cat(add$NAME, " \\newline ",add$CIVIC, " \\newline ",add$TOWN," ",add$PROV, " \\newline ",add$POST, " \\ \\par ")
+ 
+    cat(' \\fontsize{14}{14} \\selectfont')
+    cat('\\newpage\\null\\thispagestyle{empty}\\newpage')
+    cat('\\thispagestyle{empty}')
+    cat("\\newgeometry{left=3cm,right=3cm,top=3cm,bottom=3cm}")
+    cat(' \\bigskip')
+    cat('\\setlength{\\leftskip}{8cm}')
+    cat(perlist[[i]]$paraA)
+    cat('\\par \\setlength{\\leftskip}{0pt} \\bigskip ')
+    cat(perlist[[i]]$paraB)
+    cat(perlist[[i]]$mytagcapturedbutihavenoreturns)
+    cat(perlist[[i]]$info)
+    cat(perlist[[i]]$capbefore)
+    cat(perlist[[i]]$capafter)
+    cat(perlist[[i]]$capturedbeforeandafter)
+    cat(perlist[[i]]$released)
+    cat(perlist[[i]]$notreleased)
+    cat(perlist[[i]]$mixedrelret)
+    cat(perlist[[i]]$final)
+    cat(perlist[[i]]$end)
+    cat("\\par \\restoregeometry")
+
+    cat('\\newpage\\null\\thispagestyle{empty}\\newpage ')
+    
+    charts = perlist[[i]]$charts
+    pagecount = 1
+    for(j in 1:length(charts)){
+      cat(' \\newpage ') 
+      impath = charts[j]
+      cat("<center>")
+      cat("![](",impath,")")
+      cat("</center>")
+      cat(" \\ ") 
+      pagecount = j
+    }
+  
+    if(pagecount%%2 == 1) cat('\\newpage\\null\\thispagestyle{empty}')
+    cat(' \\newpage ') 
+  
+    cat("![](inst\\extdata\\rewards\\TagRet1.pdf)")
+    cat(' \\newpage ') 
+    cat("![](inst\\extdata\\rewards\\TagRet2.pdf)")
+  }
+```
+
