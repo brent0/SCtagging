@@ -306,11 +306,11 @@ ret_ent <- function(ddata){
   }, finally = {
   })
   
- # conn = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  # conn = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   # Check connection
-#  if (conn == -1){
+  #  if (conn == -1){
   #  return(toJSON("Connection failed"))
- # }
+  # }
   out = ""
   
   ent = myUrlEncode(ddata)
@@ -485,7 +485,7 @@ ret_ent <- function(ddata){
   
   #result = RODBC::sqlQuery(conn, toda)
   rs = ROracle::dbSendQuery(conn, toda) 
-
+  
   if(dbGetInfo(rs, what = "rowsAffected") == 1){
     
   }
@@ -511,10 +511,10 @@ ret_ent <- function(ddata){
   out = paste(out, "\n", sep = "")
   
   
-ROracle::dbCommit(conn)
-ROracle::dbDisconnect(conn)
-#RODBC::odbcClose(conn)
-return(out)
+  ROracle::dbCommit(conn)
+  ROracle::dbDisconnect(conn)
+  #RODBC::odbcClose(conn)
+  return(out)
 }
 
 
@@ -542,73 +542,73 @@ SC_Stats_Capture = function(are= "", years = "", region = "SoctianShelf"){
   y = unlist(strsplit(years, ","))
   are = as.character(are)
   y = as.character(y)
-
+  
   str = ""
   
   if(are == "all"){
     str = paste(str,"</br>Statistics for", are," areas", years, sep=" ")
   }else{
-      str = paste(str, "</br>Statistics for", as.character(are), years, sep=" ")
-    }
-    if(min(as.numeric(unlist(strsplit(years, ","))), na.rm=T) < 2004){
-      mess = FALSE
-    }else{
-      
-      mess = tagReturned_Year(are, years)
-     
-    }
-
-    if(mess == FALSE){
-      str = paste(str, "</br></br>There were no tags returned or the data is not available for this year selection", sep="")
-    }else{
-      str = paste(str, "</br></br>The following data is from captures in the area and years selected:&nbsp", sep="")
-      str = paste(str, "</br>&nbsp&nbsp&nbspNumber of tags returned with position and date:&nbsp ", sep="")
-      str = paste(str, mess$a, sep="")
-      str = paste(str, "</br>&nbsp&nbsp&nbspNumber of individuals returning tags:&nbsp ", sep="")
-      str = paste(str, mess$b, sep="")
-    }
-
-    mess = tagApplied(are, years)
-    if(mess == FALSE){
-      str = paste(str, "</br></br>There were no tags released", sep="")
-    }else{
-      str = paste(str, "</br></br>The following data is from crab that have been tagged in the area and years selected:&nbsp", sep="")
-      str = paste(str, "</br>&nbsp&nbsp&nbspTags Released:&nbsp ", sep="")
-      str = paste(str, mess, sep="")
-    }
-    mess = tagReturned_Applied(are, years)
-    if(mess == FALSE){
-      str = paste(str,"</br>&nbsp&nbsp&nbspThere were no valid returns to create stats", sep="")
-    }else{
-      
-      str = paste(str,"</br>&nbsp&nbsp&nbsp	Number of these tags returned: &nbsp", sep="")
-      str = paste(str,mess$ret, sep="")
-      str = paste(str,"</br>&nbsp&nbsp&nbsp	Number of crab captured more than once:&nbsp", sep="")
-      tx = as.numeric(mess$ret)
-      ty =  as.numeric(mess$retuni)
-      tx = tx - ty
-      str = paste(str,tx)
-      str = paste(str,"</br>Data from these released crab with captures that occured more than 10 days from tag site:&nbsp", sep="")
-      str = paste(str,"</br>&nbsp&nbsp&nbsp	Average movement (km):&nbsp", sep="")
-      str = paste(str,mess$mov, sep="")
-      str = paste(str,"</br>&nbsp&nbsp&nbsp	Largest movement (km):&nbsp", sep="")
-      str = paste(str,mess$lmov, sep="")
-      str = paste(str,"</br>&nbsp&nbsp&nbsp	Average number of days to capture:&nbsp", sep="")
-      str = paste(str,mess$day, sep="")
-      str = paste(str,"</br>&nbsp&nbsp&nbsp	Longest number of days between release site and capture:&nbsp", sep="")
-      str = paste(str,mess$lday, sep="")
-      str = paste(str,"</br>&nbsp&nbsp&nbsp	Ave. rate of movement (total km/ total months):&nbsp", sep="")
-      str = paste(str,mess$spe, sep="")
-      
-    }
+    str = paste(str, "</br>Statistics for", as.character(are), years, sep=" ")
+  }
+  if(min(as.numeric(unlist(strsplit(years, ","))), na.rm=T) < 2004){
+    mess = FALSE
+  }else{
     
-    tplot = plottags(are, y)
-    str = paste(str, "<img 
+    mess = tagReturned_Year(are, years)
+    
+  }
+  
+  if(mess == FALSE){
+    str = paste(str, "</br></br>There were no tags returned or the data is not available for this year selection", sep="")
+  }else{
+    str = paste(str, "</br></br>The following data is from captures in the area and years selected:&nbsp", sep="")
+    str = paste(str, "</br>&nbsp&nbsp&nbspNumber of tags returned with position and date:&nbsp ", sep="")
+    str = paste(str, mess$a, sep="")
+    str = paste(str, "</br>&nbsp&nbsp&nbspNumber of individuals returning tags:&nbsp ", sep="")
+    str = paste(str, mess$b, sep="")
+  }
+  
+  mess = tagApplied(are, years)
+  if(mess == FALSE){
+    str = paste(str, "</br></br>There were no tags released", sep="")
+  }else{
+    str = paste(str, "</br></br>The following data is from crab that have been tagged in the area and years selected:&nbsp", sep="")
+    str = paste(str, "</br>&nbsp&nbsp&nbspTags Released:&nbsp ", sep="")
+    str = paste(str, mess, sep="")
+  }
+  mess = tagReturned_Applied(are, years)
+  if(mess == FALSE){
+    str = paste(str,"</br>&nbsp&nbsp&nbspThere were no valid returns to create stats", sep="")
+  }else{
+    
+    str = paste(str,"</br>&nbsp&nbsp&nbsp	Number of these tags returned: &nbsp", sep="")
+    str = paste(str,mess$ret, sep="")
+    str = paste(str,"</br>&nbsp&nbsp&nbsp	Number of crab captured more than once:&nbsp", sep="")
+    tx = as.numeric(mess$ret)
+    ty =  as.numeric(mess$retuni)
+    tx = tx - ty
+    str = paste(str,tx)
+    str = paste(str,"</br>Data from these released crab with captures that occured more than 10 days from tag site:&nbsp", sep="")
+    str = paste(str,"</br>&nbsp&nbsp&nbsp	Average movement (km):&nbsp", sep="")
+    str = paste(str,mess$mov, sep="")
+    str = paste(str,"</br>&nbsp&nbsp&nbsp	Largest movement (km):&nbsp", sep="")
+    str = paste(str,mess$lmov, sep="")
+    str = paste(str,"</br>&nbsp&nbsp&nbsp	Average number of days to capture:&nbsp", sep="")
+    str = paste(str,mess$day, sep="")
+    str = paste(str,"</br>&nbsp&nbsp&nbsp	Longest number of days between release site and capture:&nbsp", sep="")
+    str = paste(str,mess$lday, sep="")
+    str = paste(str,"</br>&nbsp&nbsp&nbsp	Ave. rate of movement (total km/ total months):&nbsp", sep="")
+    str = paste(str,mess$spe, sep="")
+    
+  }
+  
+  tplot = plottags(are, y)
+  str = paste(str, "<img 
                 src='", tplot, "' height='87'
                 width='100' />", sep = "")
-    
-    return(str)
-    
+  
+  return(str)
+  
 }
 
 #' @title  SC_Stats_Capture_Table
@@ -626,11 +626,11 @@ SC_Stats_Capture_Table = function(are= "", years = "", region = "SoctianShelf"){
     mess = tagApplied(are, y[i])
     mess2 = tagReturned_Applied(are, y[i])
     dx = rbind(dx, cbind(y[i], mess, mess2$ret, mess2$retuni, mess2$day, mess2$mov, mess2$lday, mess2$lmov, mess2$spe))
-    }
-    names(dx) = c("Year", "NumReleased", "NumReturned", "NumUniqueReturned", "AveDay2Capture", "AveDist2Capture", "MaxDay2Capture", "MaxDist2Capture", "km/month")
-    str = print(xtable(dx), type = "html", row.names = F)
-    
-    return(str)
+  }
+  names(dx) = c("Year", "NumReleased", "NumReturned", "NumUniqueReturned", "AveDay2Capture", "AveDist2Capture", "MaxDay2Capture", "MaxDist2Capture", "km/month")
+  str = print(xtable(dx), type = "html", row.names = F)
+  
+  return(str)
 }
 
 
@@ -669,9 +669,9 @@ tagApplied = function(are, years, rm.gulf = T){
     return(toJSON("Connection failed"))
   }, finally = {
   })
-
   
- # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  
+  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
   da = NULL
   
   
@@ -711,10 +711,10 @@ tagApplied = function(are, years, rm.gulf = T){
   #REMOVE GULF ENTRIES
   # ind = which( as.character(da$samparea) == "GULF" )
   if(rm.gulf){
-  ind = which(as.character(da$samparea) == "GULF"  & as.numeric(as.character(da$sampyear)) <= 2014 )
-  
-  if(length(ind)>0)
-    da = da[-ind,]
+    ind = which(as.character(da$samparea) == "GULF"  & as.numeric(as.character(da$sampyear)) <= 2014 )
+    
+    if(length(ind)>0)
+      da = da[-ind,]
   }
   
   ind = which( as.numeric(da$sampyear) < 2004 )
@@ -729,479 +729,478 @@ tagApplied = function(are, years, rm.gulf = T){
   
 }
 
-  #' @title  tagReturned_Year
-  #' @description  Helper function to generate stats 
-  #' @import ROracle stringr
-  #' @return stats message
-  #' @export
+#' @title  tagReturned_Year
+#' @description  Helper function to generate stats 
+#' @import ROracle stringr
+#' @return stats message
+#' @export
 tagReturned_Year = function(are, years, region = "SoctianShelf"){
-    yea = as.numeric(unlist(strsplit(years, ",")))
+  yea = as.numeric(unlist(strsplit(years, ",")))
   
-    yea = str_replace_all(years, ",", "') OR (SCT_CAPTURE.YEAR = '")
- 
-    toda = paste("SELECT SCT_CAPTURE.PERSON,
+  yea = str_replace_all(years, ",", "') OR (SCT_CAPTURE.YEAR = '")
+  
+  toda = paste("SELECT SCT_CAPTURE.PERSON,
             SCT_CAPTURE.LAT_DD_DDDD,
             SCT_CAPTURE.LONG_DD_DDDD,
             SCT_CAPTURE.STATSAREA,
             SCT_CAPTURE.YEAR
             FROM SCT_CAPTURE
             WHERE (SCT_CAPTURE.YEAR = '", yea, "')", sep="")
-   
-    
-    tryCatch({
-      drv <- DBI::dbDriver("Oracle")
-      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    }, warning = function(w) {
-    }, error = function(e) {
-      return(toJSON("Connection failed"))
-    }, finally = {
-    })
-    
-    result <- ROracle::dbSendQuery(con, toda) 
-    res <- ROracle::fetch(result)
-    
-    ROracle::dbDisconnect(con)
-    
-    #con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    #res = sqlQuery(con, toda)
-    #odbcClose(con)
- 
-    x = nrow(res)
-
-    #Remove data outside of query area	
-    ii = absolutely.in.area2(are, res$LONG_DD_DDDD, res$LAT_DD_DDDD) 
-
-    ind = which(!ii)
-    if(length(ind)>0) 
-      res = res[-ind,]
-    
-    x = nrow(res)
-    if(x == 0) return(FALSE)
-    y = length(unique(res$PERSON))
-    
-    z = NULL
-    z$a=x
-    z$b=y-1  # -1 because unknown is not a person and database contains entries for person 'unknown'
-    
-    return(z)
-  }
   
   
-  #' @title  tagReturned_Applied
-  #' @description  Helper function to generate stats 
-  #' @import lubridate
-  #' @return stats message 
-  #' @export
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  result <- ROracle::dbSendQuery(con, toda) 
+  res <- ROracle::fetch(result)
+  
+  ROracle::dbDisconnect(con)
+  
+  #con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  #res = sqlQuery(con, toda)
+  #odbcClose(con)
+  
+  x = nrow(res)
+  
+  #Remove data outside of query area	
+  ii = absolutely.in.area2(are, res$LONG_DD_DDDD, res$LAT_DD_DDDD) 
+  
+  ind = which(!ii)
+  if(length(ind)>0) 
+    res = res[-ind,]
+  
+  x = nrow(res)
+  if(x == 0) return(FALSE)
+  y = length(unique(res$PERSON))
+  
+  z = NULL
+  z$a=x
+  z$b=y-1  # -1 because unknown is not a person and database contains entries for person 'unknown'
+  
+  return(z)
+}
+
+
+#' @title  tagReturned_Applied
+#' @description  Helper function to generate stats 
+#' @import lubridate
+#' @return stats message 
+#' @export
 tagReturned_Applied = function(are, years, rm.gulf = T){
-    #TAGS APPLIED IN GIVEN AREA AND YEAR
-    maxkm = 50
-    z = NULL
-    z$ret = NA
-    z$retuni = NA
-    z$mov = NA
-    z$lmov = NA
-    z$day = NA
-    z$lday = NA
-    z$spe = NA
-    
-    yea = as.numeric(unlist(strsplit(years, ",")))
-    y = get.capturedata()
-    x = get.path()
-
-    names(x) = c("PID", "CID", "capdate", "kms")
-
-    y$capdate = format(y$capdate, "%d/%m/%Y")
-    y$sampdat = format(y$sampdat, "%d/%m/%Y")
-   # y$capdate = format(y$capdate, format = "%d/%m/%Y")
-    da = merge(x, y, by = c("PID","capdate"))
-   
-    ##REMOVE YEARS
-    da = da[which(da$sampyear %in% yea),]
-    da$sample_num = NULL
-    da$sample_id = NULL
-    da$trip = NULL
-    da$trip_id = NULL
-    da$captain = NULL
-    da$Reported = NULL
-    
-    da$sample_id = NULL
-    nr = nrow(da)
-    
-    
-    if(nr == 0) return(z)
-    names(da) = c("PID","capdat", "CID", "km", "caparea","caplat", "caplong",  "capyear", "relcode", "triparea", "sampyear", "sampdate", "samplat", "samplon")
-    
-    ii = absolutely.in.area2(are, da$samplon, da$samplat)
-    #jj = absolutely.in.area2(are, da$caplon, da$caplat)
-   # ind = which(!(ii | jj))
-    ind = which(!ii)
-    
-    if(length(ind)>0) 
-      da = da[-ind,]
-    
-    if(rm.gulf){
+  #TAGS APPLIED IN GIVEN AREA AND YEAR
+  maxkm = 50
+  z = NULL
+  z$ret = NA
+  z$retuni = NA
+  z$mov = NA
+  z$lmov = NA
+  z$day = NA
+  z$lday = NA
+  z$spe = NA
+  
+  yea = as.numeric(unlist(strsplit(years, ",")))
+  y = get.capturedata()
+  x = get.path()
+  
+  names(x) = c("PID", "CID", "capdate", "kms")
+  
+  y$capdate = format(y$capdate, "%d/%m/%Y")
+  y$sampdat = format(y$sampdat, "%d/%m/%Y")
+  # y$capdate = format(y$capdate, format = "%d/%m/%Y")
+  da = merge(x, y, by = c("PID","capdate"))
+  
+  ##REMOVE YEARS
+  da = da[which(da$sampyear %in% yea),]
+  da$sample_num = NULL
+  da$sample_id = NULL
+  da$trip = NULL
+  da$trip_id = NULL
+  da$captain = NULL
+  da$Reported = NULL
+  
+  da$sample_id = NULL
+  nr = nrow(da)
+  
+  
+  if(nr == 0) return(z)
+  names(da) = c("PID","capdat", "CID", "km", "caparea","caplat", "caplong",  "capyear", "relcode", "triparea", "sampyear", "sampdate", "samplat", "samplon")
+  
+  ii = absolutely.in.area2(are, da$samplon, da$samplat)
+  #jj = absolutely.in.area2(are, da$caplon, da$caplat)
+  # ind = which(!(ii | jj))
+  ind = which(!ii)
+  
+  if(length(ind)>0) 
+    da = da[-ind,]
+  
+  if(rm.gulf){
     #REMOVE GULF ENTRIES
     #ind = which( as.character(da$caparea) == "GULF" & as.character(da$triparea) == "GULF"  )
     ind = which(as.character(da$triparea) == "GULF"  & as.numeric(as.character(da$sampyear)) <= 2014 )
     if(length(ind)>0) 
       da = da[-ind,]
-    }
-
-    nr = nrow(da)
-    
-    if(nr == 0) return(z)
-    
+  }
   
-    
-    z$ret = nrow(da)
-    z$retuni = length(unique(da$PID))
-    
-
-    
-    
-    mov = data2Poly(da)
-    ind = which(mov$X == 0)
-    ind = which(mov$PID %in% mov$PID[ind])
-    if(length(ind)>0) 
-      mov = mov[-ind,]
-    
-    ind = which(is.na(mov$D))
-    ind = which(mov$PID %in% mov$PID[ind])
-    if(length(ind)>0) 
-      mov = mov[-ind,]
-    
-    #dates = as.character(mov$D)
+  nr = nrow(da)
+  
+  if(nr == 0) return(z)
+  
+  
+  
+  z$ret = nrow(da)
+  z$retuni = length(unique(da$PID))
+  
+  
+  
+  
+  mov = data2Poly(da)
+  ind = which(mov$X == 0)
+  ind = which(mov$PID %in% mov$PID[ind])
+  if(length(ind)>0) 
+    mov = mov[-ind,]
+  
+  ind = which(is.na(mov$D))
+  ind = which(mov$PID %in% mov$PID[ind])
+  if(length(ind)>0) 
+    mov = mov[-ind,]
+  
+  #dates = as.character(mov$D)
   #  mov$D = as.POSIXct(as.numeric(dates), origin = '1970-01-01')
-     mov$D = dmy(mov$D)
-   if(nrow(mov) == 0)return(z)
-    x = split(mov, mov$PID)
-    ndays = NULL
-    nkm = NULL
-    pid = NULL
-    tofirst = NULL
-    tofkm = NULL
-    for (i in 1:length(x)) {
+  mov$D = dmy(mov$D)
+  if(nrow(mov) == 0)return(z)
+  x = split(mov, mov$PID)
+  ndays = NULL
+  nkm = NULL
+  pid = NULL
+  tofirst = NULL
+  tofkm = NULL
+  for (i in 1:length(x)) {
     
-      chunk = data.frame(x[i])
-      names(chunk) = c("PID", "POS", "X", "Y", "D", "K")
-      dd = as.character(chunk$D)
-      day = 0
-      km = 0
-      fkm = chunk$K[2]
-      fday = (chunk$D[2] - chunk$D[1])
+    chunk = data.frame(x[i])
+    names(chunk) = c("PID", "POS", "X", "Y", "D", "K")
+    dd = as.character(chunk$D)
+    day = 0
+    km = 0
+    fkm = chunk$K[2]
+    fday = (chunk$D[2] - chunk$D[1])
+    
+    
+    
+    for(j in 1:((nrow(chunk))-1)){
+      day = day + (chunk$D[j+1] - chunk$D[j])
       
-      
-      
-      for(j in 1:((nrow(chunk))-1)){
-        day = day + (chunk$D[j+1] - chunk$D[j])
-        
-        km = km + as.numeric(chunk$K[j+1])
-      }
-      if(km > maxkm){
-        print(chunk)
-        print(km)
-        maxkm = km
-      }
-      ndays = c(ndays, day)
-      nkm = c(nkm, km)
-      pid = c(pid, chunk$PID[1])
-      tofirst = c(tofirst, fday)
-      tofkm = c(tofkm, fkm)
+      km = km + as.numeric(chunk$K[j+1])
     }
-    daysince = cbind(pid, ndays, nkm)
-    daysince = data.frame(daysince)
-    
-    ind = which(as.numeric(daysince$ndays) <= 10)
-    
-    
-    if(length(ind)>0) 
-      daysince = daysince[-ind,]
-    x = nrow(daysince)
-    
-    if(x == 0) return(z)
-    
-    #m = calcLength (mov, rollup = 3, close = FALSE)
-    
-    z$mov = mean(daysince$nkm)
-    z$lmov = max(daysince$nkm)
-    if(dir.exists(file.path(data_root, "bio.snowcrab", "data", "tagging"))){
-      pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("distances", are, years,".pdf", sep = "_")))
-      hist(daysince$nkm,breaks=100, col="red",main="Distances Travelled",xlab="Distance(km)")
-      dev.off()
-      # pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("days.pdf", are, years,".pdf", sep = "_")))
-      # hist(daysince$ndays,breaks=100, col="red",main="Days To Last Known Capture",xlab="Time(days)")
-      # dev.off()
-      # pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("tofirstdays.pdf", are, years,".pdf", sep = "_")))
-      # hist(tofirst,breaks=100, col="red", main="Days To First Capture",xlab="Time(days)")
-      # dev.off()
+    if(km > maxkm){
+      print(chunk)
+      print(km)
+      maxkm = km
     }
-    else{
-      warning("Not creating plots because no 'data_root' directory set up!")
-    }
-
-    z$day = mean(daysince$ndays)
-    z$lday = max(daysince$ndays)
-    
-    #z$spe = z$mov/(z$day*0.0328549) #Days to month, km/month output
-    z$spe = sum(daysince$nkm)/sum(daysince$ndays*0.0328549) #Days to month, km/month output
-    distance = daysince$nkm
-    return(z)
-    
+    ndays = c(ndays, day)
+    nkm = c(nkm, km)
+    pid = c(pid, chunk$PID[1])
+    tofirst = c(tofirst, fday)
+    tofkm = c(tofkm, fkm)
   }
+  daysince = cbind(pid, ndays, nkm)
+  daysince = data.frame(daysince)
+  
+  ind = which(as.numeric(daysince$ndays) <= 10)
+  
+  
+  if(length(ind)>0) 
+    daysince = daysince[-ind,]
+  x = nrow(daysince)
+  
+  if(x == 0) return(z)
+  
+  #m = calcLength (mov, rollup = 3, close = FALSE)
+  
+  z$mov = mean(daysince$nkm)
+  z$lmov = max(daysince$nkm)
+  if(dir.exists(file.path(data_root, "bio.snowcrab", "data", "tagging"))){
+    pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("distances", are, years,".pdf", sep = "_")))
+    hist(daysince$nkm,breaks=100, col="red",main="Distances Travelled",xlab="Distance(km)")
+    dev.off()
+    # pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("days.pdf", are, years,".pdf", sep = "_")))
+    # hist(daysince$ndays,breaks=100, col="red",main="Days To Last Known Capture",xlab="Time(days)")
+    # dev.off()
+    # pdf(file.path(data_root, "bio.snowcrab", "data", "tagging", paste("tofirstdays.pdf", are, years,".pdf", sep = "_")))
+    # hist(tofirst,breaks=100, col="red", main="Days To First Capture",xlab="Time(days)")
+    # dev.off()
+  }
+  else{
+    warning("Not creating plots because no 'data_root' directory set up!")
+  }
+  
+  z$day = mean(daysince$ndays)
+  z$lday = max(daysince$ndays)
+  
+  #z$spe = z$mov/(z$day*0.0328549) #Days to month, km/month output
+  z$spe = sum(daysince$nkm)/sum(daysince$ndays*0.0328549) #Days to month, km/month output
+  distance = daysince$nkm
+  return(z)
+  
+}
 alldata = function(are, years){
-    are = "all"
-    years = 2004:2019
-    y = get.capturedatacc()
-    x = get.paths()
-    names(x) = c("PID", "plon", "plat", "capdate", "kms")
-    x$capdate = dmy(x$capdate)
-    y$sampdat = ymd(y$sampdat)
-    da = merge(x, y, by = c("PID","capdate"))
-    da$difdays = as.numeric(da$capdate - da$sampdat)
-    da$kms = as.numeric(da$kms)
-    da$kmperd = da$kms/da$difdays
-    ii = absolutely.in.area2(are, da$samplon, da$samplat)
-    jj = absolutely.in.area2(are, da$caplon, da$caplat)
-    ind = which(!(ii | jj))
-    
-    
-    if(length(ind)>0) 
-      da = da[-ind,]
-    
-    write.csv(da, "outcc.csv")
-  }
-  
-addPaths <- function(dx){
-    dx$plat = NA
-    dx$plon = NA
-    dx$km = NA
-    pidinr = 1
-    for(i in 1:nrow(dx)){
-      #pat = get.paths(as.character(dx$PID[i]))
-      dx$plat[i] = pat$LAT[1]
-      dx$plon[i] = pat$LON[1]
-      dx$km[i] = pat$DIST[1]
-      inr = 2
-      while(dx$PID[i+1] == dx$PID[i]){
-        i = i+1
-        dx$plat[i] = pat$LAT[inr]
-        dx$plon[i] = pat$LON[inr]
-        dx$km[i] = pat$DIST[inr]
-        inr = inr + 1
-      }
-      
-    }
-    
-    return(dx)
-  }
-  
- 
-  
-  #' @title  THE MAIN GUI FUNCTION!
-  #' @description  Opens web page of options for data entry
-  #' @import opencpu
-  #' @export
-  enter_data_app <- function(){
-    ocpu_start_app("SCtagging", no_cache = TRUE)
-    
-  }
+  are = "all"
+  years = 2004:2019
+  y = get.capturedatacc()
+  x = get.paths()
+  names(x) = c("PID", "plon", "plat", "capdate", "kms")
+  x$capdate = dmy(x$capdate)
+  y$sampdat = ymd(y$sampdat)
+  da = merge(x, y, by = c("PID","capdate"))
+  da$difdays = as.numeric(da$capdate - da$sampdat)
+  da$kms = as.numeric(da$kms)
+  da$kmperd = da$kms/da$difdays
+  ii = absolutely.in.area2(are, da$samplon, da$samplat)
+  jj = absolutely.in.area2(are, da$caplon, da$caplat)
+  ind = which(!(ii | jj))
   
   
- 
-  #' @title  SCT_nrows
-  #' @description  Get the number of rows from specified table
-  #' @param table The name of the table from which to determine the current number of rows
-  #' @import ROracle
-  SCT_nrows <- function(table = ""){
-    
-    tryCatch({
-      drv <- DBI::dbDriver("Oracle")
-      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    }, warning = function(w) {
-    }, error = function(e) {
-      return(toJSON("Connection failed"))
-    }, finally = {
-    })
-    nrows = NULL
-    result <- ROracle::dbSendQuery(con, paste("select count(*) from ", table, sep = "")) 
-    nrows <- ROracle::fetch(result)
-    
-    #con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    
-    #nrows = sqlQuery(con, paste("select count(*) from ", table, sep = "") )
-    #odbcClose(con)
-    ROracle::dbDisconnect(con)
-    
-    return(nrows)
-  }
+  if(length(ind)>0) 
+    da = da[-ind,]
   
-  #' @title  SQLsafty
-  #' @description  Relapce ' with '' to perserve entries
-  #' @param var The variables to modify
-  #' @export
-  SQLsafty <- function(var) {
-    
-    return(gsub("'", "''", var))
-  }
-  
-  
-  #' @title  myUrlEncode
-  #' @description  Decode json url
-  #' @param string The url to decode
-  #' @export
-  myUrlEncode <- function(string) {
-    entities = c("%21", "%2A", "%27", "%28", "%29", "%3B", "%3A", "%40", "%26", "%3D", "%2B", "%24", "%2C", "%2F", "%3F", "%25", "%23", "%5B", "%5D", "%C2%B0", "\\+", "%0D%0A")
-    replacements = c("!", "*", "'", "(", ")", ";", ":", "@", "%26", "%3D", "+", "$", ",", "/", "?", "%", "#", "[", "]", "", " ", "  ")
-    
-    
-    for(i in 1:length(entities)){
-      print(entities[i])
-      string = gsub(entities[i], replacements[i], string)
-    }
-    return(string)
-  }
-  
-  #' @title  conpos
-  #' @description  Decode positional data
-  #' @param string The pos to decode
-  #' @return the decoded position 
-  conpos = function(string) {
-    
-    if(substr(string, 4, 4) == '.'){
-      string = paste(substr(string, 1, 2),'0',substr(string, 3, nchar(string)), sep = "")
-    }
-    de = as.integer(substr(string, 1, 2)) 
-    min = as.integer(substr(string, 3, 4))
-    dmin = as.integer(substr(string, 6, 7))/100
-    dm = (min + dmin)/60
-    nu = de + dm
-    return(nu)
-  }
-  
-  #' @title  auto_availableP
-  #' @description Function that help autopopulate people in the html form
-  #' @import ROracle DBI jsonlite
-  #' @export
-  autoavailableP = function(options = "", region = ""){
-    tryCatch({
-      drv <- DBI::dbDriver("Oracle")
-      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    }, warning = function(w) {
-    }, error = function(e) {
-      return(toJSON("Connection failed"))
-    }, finally = {
-    })
-    
-    
-    # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    res = ""
-    if(region == "ss"){
-      #res = sqlQuery(con, "select NAME from SCT_PEOPLE" )
-      result <- ROracle::dbSendQuery(con, "select NAME from SCT_PEOPLE") 
+  write.csv(da, "outcc.csv")
+}
 
-      
-      }
-    if(region == "g"){
-      #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
-      result <- ROracle::dbSendQuery(con, "select NAME from SCT_PEOPLE_GULF") 
-          }
-    
-    result <- ROracle::fetch(result)
-    
-    ROracle::dbDisconnect(con)
-    
-    #odbcClose(con)
-    
-    return(toJSON(result))
-    
-  }
-  #' @title  auto_availableT
-  #' @description Function that help autopopulate Tag id in the html form
-  #' @import ROracle jsonlite
-  #' @export
-  autoavailableT = function(region = ""){
-    tryCatch({
-      drv <- DBI::dbDriver("Oracle")
-      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    }, warning = function(w) {
-    }, error = function(e) {
-      return(toJSON("Connection failed"))
-    }, finally = {
-    })
-    
-    
-    # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    result = ""
-    if(region == "ss"){
-      #res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
-      result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO") 
-      
-      
-    }
-    if(region == "g"){
-      #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
-      result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO_GULF") 
+addPaths <- function(dx){
+  dx$plat = NA
+  dx$plon = NA
+  dx$km = NA
+  pidinr = 1
+  for(i in 1:nrow(dx)){
+    #pat = get.paths(as.character(dx$PID[i]))
+    dx$plat[i] = pat$LAT[1]
+    dx$plon[i] = pat$LON[1]
+    dx$km[i] = pat$DIST[1]
+    inr = 2
+    while(dx$PID[i+1] == dx$PID[i]){
+      i = i+1
+      dx$plat[i] = pat$LAT[inr]
+      dx$plon[i] = pat$LON[inr]
+      dx$km[i] = pat$DIST[inr]
+      inr = inr + 1
     }
     
-    result <- ROracle::fetch(result)
-    
-    ROracle::dbDisconnect(con)
-    
-    #odbcClose(con)
-    
-    return(toJSON(result))
-    # 
-    # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    # 
-    # res = ""
-    # if(region == "ss"){
-    #   res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
-    # }
-    # if(region == "g"){
-    #   res = sqlQuery(con, "select TAG_ID from SCT_BIO_GULF" )
-    # }
-    # odbcClose(con)
-    # 
-    # return(toJSON(res))
-    
   }
   
-  #' @title  autoaddData
-  #' @description Function that help autopopulate people in the html form
-  #' @param name The persons name from which to obtain current info
-  #' @import ROracle DBI jsonlite
-  #' @export
-  autoaddData = function(name = "", region = ""){
- 
-    tryCatch({
-      drv <- DBI::dbDriver("Oracle")
-      con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    }, warning = function(w) {
-    }, error = function(e) {
-      return(toJSON("Connection failed"))
-    }, finally = {
-    })
+  return(dx)
+}
+
+
+
+#' @title  THE MAIN GUI FUNCTION!
+#' @description  Opens web page of options for data entry
+#' @import opencpu
+#' @export
+enter_data_app <- function(){
+  ocpu_start_app("SCtagging", no_cache = TRUE)
+  
+}
+
+
+
+#' @title  SCT_nrows
+#' @description  Get the number of rows from specified table
+#' @param table The name of the table from which to determine the current number of rows
+#' @import ROracle
+SCT_nrows <- function(table = ""){
+  
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  nrows = NULL
+  result <- ROracle::dbSendQuery(con, paste("select count(*) from ", table, sep = "")) 
+  nrows <- ROracle::fetch(result)
+  
+  #con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  
+  #nrows = sqlQuery(con, paste("select count(*) from ", table, sep = "") )
+  #odbcClose(con)
+  ROracle::dbDisconnect(con)
+  
+  return(nrows)
+}
+
+#' @title  SQLsafty
+#' @description  Relapce ' with '' to perserve entries
+#' @param var The variables to modify
+#' @export
+SQLsafty <- function(var) {
+  
+  return(gsub("'", "''", var))
+}
+
+
+#' @title  myUrlEncode
+#' @description  Decode json url
+#' @param string The url to decode
+#' @export
+myUrlEncode <- function(string) {
+  entities = c("%21", "%2A", "%27", "%28", "%29", "%3B", "%3A", "%40", "%26", "%3D", "%2B", "%24", "%2C", "%2F", "%3F", "%25", "%23", "%5B", "%5D", "%C2%B0", "\\+", "%0D%0A")
+  replacements = c("!", "*", "'", "(", ")", ";", ":", "@", "%26", "%3D", "+", "$", ",", "/", "?", "%", "#", "[", "]", "", " ", "  ")
+  
+  
+  for(i in 1:length(entities)){
+    print(entities[i])
+    string = gsub(entities[i], replacements[i], string)
+  }
+  return(string)
+}
+
+#' @title  conpos
+#' @description  Decode positional data
+#' @param string The pos to decode
+#' @return the decoded position 
+conpos = function(string) {
+  
+  if(substr(string, 4, 4) == '.'){
+    string = paste(substr(string, 1, 2),'0',substr(string, 3, nchar(string)), sep = "")
+  }
+  de = as.integer(substr(string, 1, 2)) 
+  min = as.integer(substr(string, 3, 4))
+  dmin = as.integer(substr(string, 6, 7))/100
+  dm = (min + dmin)/60
+  nu = de + dm
+  return(nu)
+}
+
+#' @title  auto_availableP
+#' @description Function that help autopopulate people in the html form
+#' @import ROracle DBI jsonlite
+#' @export
+autoavailableP = function(options = "", region = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  
+  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  res = ""
+  if(region == "ss"){
+    #res = sqlQuery(con, "select NAME from SCT_PEOPLE" )
+    result <- ROracle::dbSendQuery(con, "select NAME from SCT_PEOPLE") 
     
-    
-    gstring = ""
-    if(region == "g") gstring = "_GULF"
-    
-      #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
-      result <- ROracle::dbSendQuery(con, paste("select * from SCT_PEOPLE", gstring,"  where NAME = '", name, "'", sep = "" )) 
-    
-    
-    result <- ROracle::fetch(result)
-    
-    ROracle::dbDisconnect(con)
-    
-    
-    # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-    # res = sqlQuery(con, paste("select * from SCT_PEOPLE", gstring,"  where NAME = '", name, "'", sep = "" ))
-    # odbcClose(con)
-    # 
-    return(toJSON(result))
     
   }
+  if(region == "g"){
+    #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
+    result <- ROracle::dbSendQuery(con, "select NAME from SCT_PEOPLE_GULF") 
+  }
+  
+  result <- ROracle::fetch(result)
+  
+  ROracle::dbDisconnect(con)
+  
+  #odbcClose(con)
+  
+  return(toJSON(result))
+  
+}
+#' @title  auto_availableT
+#' @description Function that help autopopulate Tag id in the html form
+#' @import ROracle jsonlite
+#' @export
+autoavailableT = function(region = ""){
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
   
   
+  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  result = ""
+  if(region == "ss"){
+    #res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
+    result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO") 
+    
+    
+  }
+  if(region == "g"){
+    #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
+    result <- ROracle::dbSendQuery(con, "select TAG_ID from SCT_BIO_GULF") 
+  }
   
+  result <- ROracle::fetch(result)
+  
+  ROracle::dbDisconnect(con)
+  
+  #odbcClose(con)
+  
+  return(toJSON(result))
+  # 
+  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  # 
+  # res = ""
+  # if(region == "ss"){
+  #   res = sqlQuery(con, "select TAG_ID from SCT_BIO" )
+  # }
+  # if(region == "g"){
+  #   res = sqlQuery(con, "select TAG_ID from SCT_BIO_GULF" )
+  # }
+  # odbcClose(con)
+  # 
+  # return(toJSON(res))
+  
+}
+
+#' @title  autoaddData
+#' @description Function that help autopopulate people in the html form
+#' @param name The persons name from which to obtain current info
+#' @import ROracle DBI jsonlite
+#' @export
+autoaddData = function(name = "", region = ""){
+  
+  tryCatch({
+    drv <- DBI::dbDriver("Oracle")
+    con <- ROracle::dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
+  }, warning = function(w) {
+  }, error = function(e) {
+    return(toJSON("Connection failed"))
+  }, finally = {
+  })
+  
+  
+  gstring = ""
+  if(region == "g") gstring = "_GULF"
+  
+  #res = sqlQuery(con, "select NAME from SCT_PEOPLE_GULF" )
+  result <- ROracle::dbSendQuery(con, paste("select * from SCT_PEOPLE", gstring,"  where NAME = '", name, "'", sep = "" )) 
+  
+  
+  result <- ROracle::fetch(result)
+  
+  ROracle::dbDisconnect(con)
+  
+  
+  # con = odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
+  # res = sqlQuery(con, paste("select * from SCT_PEOPLE", gstring,"  where NAME = '", name, "'", sep = "" ))
+  # odbcClose(con)
+  # 
+  return(toJSON(result))
+  
+}
+
+
