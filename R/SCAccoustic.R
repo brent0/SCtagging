@@ -59,14 +59,14 @@ write.acoustic.releases = function(dir = file.path("E:", "OTN", "releases")){
     
     da = read.csv(files[i], sep=",", header=T ) 
     print(names(da))
-
+    
     dftowrite = rbind(dftowrite, da)
     names(dftowrite) = names(dftowrite)
   }
   
   dftowrite$ANIMAL_ID = toupper(dftowrite$ANIMAL_ID)
   
-
+  
   names(dftowrite) = c("ANIMAL_ID", "TAG_TYPE", "TAG_MANUFACTURER", "TAG_MODEL", "TAG_SERIAL_NUMBER", "TAG_ID_CODE", "TAG_CODE_SPACE", "TAG_IMPLANT_TYPE",
                        "TAG_IMPLANT_METHOD", "TAG_ACTIVATION_DATE", "EST_TAG_LIFE", "TAGGER", "TAG_OWNER_PI", "TAG_OWNER_ORGANIZATION", "COMMON_NAME_E",
                        "SCIENTIFIC_NAME", "CAPTURE_LOCATION", "CAPTURE_LATITUDE", "CAPTURE_LONGITUDE", "WILD_OR_HATCHERY", "STOCK", "LENGTH_m", "WEIGHT_kg",
@@ -102,7 +102,7 @@ write.acoustic.releases = function(dir = file.path("E:", "OTN", "releases")){
 #' @export
 get.receiver.data = function(){
   x = read.csv('https://members.oceantrack.org/geoserver/otn/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=otn:stations_series&bbox=41.0,-68,50.5,-56,urn:ogc:def:crs:EPSG:4326&outputFormat=csv')
-return(x)
+  return(x)
 }
 
 #' @title  write.acoustic.detections
@@ -226,14 +226,14 @@ write.acoustic.detections = function(dir = file.path("E:", "OTN", "detections"))
       
     }
     #da$datecollected = as.character(format.Date(dmy(da$date), format = "%m/%d/%Y"))
-
+    
     dftowrite = rbind(dftowrite, da)
     names(dftowrite) = names(dftowrite)
   }
-
+  
   #da$catalognumber[which(da$catalognumber == "ZSC-OTN0020"  & mdy_hm(as.character(da$datecollected)) > mdy_hm("07/30/2014 12:00"))] = "ZSC-OTN0168" 
   #da$catalognumber = gsub("ONT", "OTN", da$catalognumber)
- # da$catalognumber[which(nchar(da$catalognumber)>11)] = gsub("OTN00", "OTN0", da$catalognumber[which(nchar(da$catalognumber)>11)])
+  # da$catalognumber[which(nchar(da$catalognumber)>11)] = gsub("OTN00", "OTN0", da$catalognumber[which(nchar(da$catalognumber)>11)])
   #COrrect or elelase oof tag 
   
   
@@ -267,8 +267,8 @@ write.acoustic.detections = function(dir = file.path("E:", "OTN", "detections"))
     dftowrite = dftowrite[ind,]
     drv <- DBI::dbDriver("Oracle")
     con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-  
-     dbWriteTable(con,"SCT_ACOUSTIC_DETECTIONS", dftowrite, append = TRUE)
+    
+    dbWriteTable(con,"SCT_ACOUSTIC_DETECTIONS", dftowrite, append = TRUE)
     dbDisconnect(con)
     
   }
@@ -286,8 +286,8 @@ write.acoustic.detections = function(dir = file.path("E:", "OTN", "detections"))
 #' @return dataframe
 #' @export
 compress.detections = function(hours.thres = 3){
-# The following code simplifies the data by grouping detections. If more than three hours pass
-# a new detection is recorded and the timespans are ajusted
+  # The following code simplifies the data by grouping detections. If more than three hours pass
+  # a new detection is recorded and the timespans are ajusted
   da = get.acoustic.detections()
   da$TimeStamp = ymd_hms(da$DATECOLLECTED)
   da$TimeStamp[which(is.na(da$TimeStamp))] = dmy_hm(da$DATECOLLECTED[which(is.na(da$TimeStamp))]) 
@@ -298,56 +298,56 @@ compress.detections = function(hours.thres = 3){
   
   
   da2 = NULL
-da$spliton = paste(as.character(da$STATION), as.character(da$CATALOGNUMBER), sep="")
-na = names(da)
-das = split(da, da$spliton, drop = T)
-
-for(i in 1:length(das)){
-  sub = data.frame(das[i])
-  names(sub) = na
-  print(sub$spliton[1])
-  prevchron = NULL
-
-  for(k in 1:nrow(sub)){
+  da$spliton = paste(as.character(da$STATION), as.character(da$CATALOGNUMBER), sep="")
+  na = names(da)
+  das = split(da, da$spliton, drop = T)
+  
+  for(i in 1:length(das)){
+    sub = data.frame(das[i])
+    names(sub) = na
+    print(sub$spliton[1])
+    prevchron = NULL
     
-    curchron = mdy_hm(sub$DATECOLLECTED[k])
-    if(is.na(curchron))curchron = ymd_hms(sub$DATECOLLECTED[k])
-    if(is.na(curchron))curchron = dmy_hm(sub$DATECOLLECTED[k])
-    if(is.na(curchron))curchron = mdy_hms(sub$DATECOLLECTED[k]) 
-    if(is.na(curchron))curchron = dmy_hms(sub$DATECOLLECTED[k])
-    if(is.null(prevchron)){
-      newent = sub[k,]
-      newent$TimeSpanStart = newent$TimeStamp
-      newent$TimeSpanEnd = newent$TimeStamp
-      newent$stime = curchron
-      newent$etime = curchron
-    }
-    else{
-   
-      if(curchron - prevchron > hours(hours.thres)){
-        newent$TimeSpanEnd = sub$TimeStamp[k-1]
-        newent$etime = prevchron
-        da2 = rbind(da2, newent)
+    for(k in 1:nrow(sub)){
+      
+      curchron = mdy_hm(sub$DATECOLLECTED[k])
+      if(is.na(curchron))curchron = ymd_hms(sub$DATECOLLECTED[k])
+      if(is.na(curchron))curchron = dmy_hm(sub$DATECOLLECTED[k])
+      if(is.na(curchron))curchron = mdy_hms(sub$DATECOLLECTED[k]) 
+      if(is.na(curchron))curchron = dmy_hms(sub$DATECOLLECTED[k])
+      if(is.null(prevchron)){
         newent = sub[k,]
         newent$TimeSpanStart = newent$TimeStamp
+        newent$TimeSpanEnd = newent$TimeStamp
         newent$stime = curchron
+        newent$etime = curchron
       }
       else{
+        
+        if(curchron - prevchron > hours(hours.thres)){
+          newent$TimeSpanEnd = sub$TimeStamp[k-1]
+          newent$etime = prevchron
+          da2 = rbind(da2, newent)
+          newent = sub[k,]
+          newent$TimeSpanStart = newent$TimeStamp
+          newent$stime = curchron
+        }
+        else{
+          newent$TimeSpanEnd = sub$TimeStamp[k]
+          newent$etime = curchron    
+        }        
+      }    
+      if(k == nrow(sub)){
         newent$TimeSpanEnd = sub$TimeStamp[k]
-        newent$etime = curchron    
-      }        
-    }    
-    if(k == nrow(sub)){
-      newent$TimeSpanEnd = sub$TimeStamp[k]
-      newent$etime = curchron
-      da2 = rbind(da2, newent)
+        newent$etime = curchron
+        da2 = rbind(da2, newent)
+      }
+      prevchron = curchron
+      
     }
-    prevchron = curchron
     
   }
-  
-}
-return(da2)
+  return(da2)
 }
 #' @title  write.acoustic.paths
 #' @description  Write calculated path data to Oracle Database
@@ -355,10 +355,10 @@ return(da2)
 #' @return dataframe
 #' @export
 write.accoustic.paths = function(){
- # x = get.acoustic.detections()
+  # x = get.acoustic.detections()
   x = compress.detections()
   rel = get.acoustic.releases()
- 
+  
   raster.path = file.path("E:", "maps", "depthraster2.tif") #meters
   neighborhood = 16
   type = "random.walk"      
@@ -468,23 +468,23 @@ write.accoustic.paths = function(){
         cor$pos = cor$POS
         cor$lat = cor$Y
         cor$lon = cor$X
- 
-      
+        
+        
         cor$Y = NULL
         cor$X = NULL
         cor$PID = NULL
         cor$POS = NULL
         
-          #  style = rel$styleUrl[which(rel$ANIMAL_ID == gsub("ZSC-" ,"", npa$catalognumber[1]))]
-       # style = sub("rel", "line", style)
-      #  pdes  = paste("<![CDATA[ </br>Distance: ", as.character(leng$length), "km</br> days: ",  days,"]]>", sep = "")
+        #  style = rel$styleUrl[which(rel$ANIMAL_ID == gsub("ZSC-" ,"", npa$catalognumber[1]))]
+        # style = sub("rel", "line", style)
+        #  pdes  = paste("<![CDATA[ </br>Distance: ", as.character(leng$length), "km</br> days: ",  days,"]]>", sep = "")
         #print(pdes)
-   
-        statsframe = rbind(statsframe,cbind(npa$CATALOGNUMBER[1], as.character(i-1), as.character(npa$TimeStamp[i-1]), as.character(npa$TimeStamp[i]), leng$length))  
-      pathframe = rbind(pathframe, cor)  
-      
         
-         # mykml$getFolder("Detections")$getFolder("Paths")$addFolder(fid = as.character(npa$catalognumber[1]), name = as.character(npa$catalognumber[1]))
+        statsframe = rbind(statsframe,cbind(npa$CATALOGNUMBER[1], as.character(i-1), as.character(npa$TimeStamp[i-1]), as.character(npa$TimeStamp[i]), leng$length))  
+        pathframe = rbind(pathframe, cor)  
+        
+        
+        # mykml$getFolder("Detections")$getFolder("Paths")$addFolder(fid = as.character(npa$catalognumber[1]), name = as.character(npa$catalognumber[1]))
         #mykml$getFolder("Detections")$getFolder("Paths")$getFolder(as.character(npa$catalognumber[1]))$addLineString(cor,  description = pdes,  styleUrl = style)
         #mykml$getFolder("Detections")$getFolder(as.character(npa$catalognumber[1]))$getFolder("path")$addLineString(cor,  styleUrl = style)
         #   mykml$getFolder("Detections")$getFolder(as.character(npa$catalognumber[1]))$addFolder(fid = "path", name = "path")
@@ -500,10 +500,10 @@ write.accoustic.paths = function(){
   names(pfr) = c("PID", "CID", "POS", "LAT", "LONG")
   drv <- DBI::dbDriver("Oracle")
   con <- dbConnect(drv, username = oracle.snowcrab.user, password = oracle.snowcrab.password, dbname = oracle.snowcrab.server)
-    dbWriteTable(con,"SCT_ACCOUSTIC_PATHS", pfr, overwrite = T)
-    dbWriteTable(con,"SCT_ACCOUSTIC_PATH", sfr, overwrite = T)
-
-  }
+  dbWriteTable(con,"SCT_ACCOUSTIC_PATHS", pfr, overwrite = T)
+  dbWriteTable(con,"SCT_ACCOUSTIC_PATH", sfr, overwrite = T)
+  
+}
 MCsubdetectionsOTN = function(quality = 1){
   require("chron")
   q = quality
